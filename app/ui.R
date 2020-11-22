@@ -28,7 +28,9 @@ shinyUI(navbarPage("AdhesiomeR",
                    tabPanel("Summary",
                             dataTableOutput("presence")),
                    tabPanel("All genes plot",
-                            plotOutput("presence_plot"))
+                            plotOutput("presence_plot")),
+                   tabPanel("Systems plots",
+                            uiOutput("systems_plots"))
                    
                    
 ))
