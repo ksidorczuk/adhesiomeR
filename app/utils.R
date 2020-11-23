@@ -8,6 +8,7 @@ my_DT <- function(x, ...)
             style = "bootstrap")
 
 get_blast_res <- function(input_file) {
+  validate_input_file(input_file)
   input_seqs <- read_fasta(input_file)
   input <- tempfile(tmpdir = getwd())
   output <- tempfile(tmpdir = getwd())

@@ -9,20 +9,25 @@ load("../data/adhesins_df.rda")
 source("utils.R")
 source("../R/get_presence.R")
 source("../R/get_system_plot.R")
+source("../R/utils.R")
 
 options(shiny.maxRequestSize=10*1024^2)
 
 shinyServer(function(input, output, session) {
     
     all_systems <- unique(adhesins_df[["System"]])
-
-
+    
+    output[["input_tab"]] <- renderText({
+      req(input[["seq_file"]])
+      input[["seq_file"]][["name"]]
+    })
+    
     
     blast_results <- reactive({
         req(input[["seq_file"]])
-        if(length(input[["seq_file"]][, 1]) > 3) {
-            stop("Too many files. You can analyze up to three genomes at once.")
-        }
+        # if(length(input[["seq_file"]][, 1]) > 3) {
+        #     stop("Too many files. You can analyze up to three genomes at once.")
+        # }
         lapply(1:length(input[["seq_file"]][, 1]), function(i) {
             get_blast_res(input[["seq_file"]][[i, 4]]) %>% 
                 mutate(File = input[["seq_file"]][[i, 1]])
@@ -46,12 +51,7 @@ shinyServer(function(input, output, session) {
         get_data_for_plots(presence_tab(), input[["systems"]])
     })
     
-    output[["tab"]] <- renderTable({
-        presence_plot_dat()
-        # req(input[["seq_file"]])
-        # input[["seq_file"]][["name"]]
-    })
-    
+
     output[["blast_res"]] <- renderDataTable({
         req(blast_results)
          blast_results() %>% 
