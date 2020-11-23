@@ -63,6 +63,15 @@ shinyServer(function(input, output, session) {
         my_DT(presence_tab())
     })
     
+    output[["systems_summary"]] <- renderDataTable({
+      get_summary_table(presence_tab()) %>% 
+        my_DT()
+    })
+    
+    output[["wordcloud"]] <- renderPlot({
+      get_word_cloud(get_count_table(presence_tab()))
+    })
+    
   observe({
       output[["presence_plot"]] <- renderPlot({
           get_presence_plot(presence_plot_dat())

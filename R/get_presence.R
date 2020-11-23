@@ -1,3 +1,8 @@
+add_missing_genes <- function(results) {
+  missing <- adhesins_df[["Gene"]][which(!(adhesins_df[["Gene"]] %in% colnames(results)))]
+  cbind(results, setNames(lapply(missing, function(x) x = 0), missing))
+}
+
 get_presence_table <- function(blast_res, add_missing = TRUE) {
   res <- blast_res %>% 
     group_by(File, Subject) %>% 
@@ -9,8 +14,7 @@ get_presence_table <- function(blast_res, add_missing = TRUE) {
   # Check for genes that were not found
   if(add_missing == TRUE) {
     if(length(unique(res[["Gene"]]) != length(adhesins_df[["Gene"]]))) {
-      missing <- adhesins_df[["Gene"]][which(!(adhesins_df[["Gene"]] %in% unique(res[["Gene"]])))]
-      pivoted_res <- cbind(pivoted_res, setNames(lapply(missing, function(x) x = 0), missing))
+      pivoted_res <- add_missing_genes(pivoted_res)
     }
   }
   pivoted_res
