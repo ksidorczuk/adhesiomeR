@@ -1,3 +1,4 @@
+#' @export
 get_presence_table <- function(blast_res, add_missing = TRUE, identity_threshold = 70, evalue_treshold = 1e-50) {
   res <- blast_res %>% 
     group_by(File, Subject) %>% 
@@ -16,7 +17,7 @@ get_presence_table <- function(blast_res, add_missing = TRUE, identity_threshold
 }
 
 
-
+#' @export
 get_data_for_plots <- function(presence_table, systems = unique(adhesins_df[["System"]])) {
   all_genes <- unique(adhesins_df[["Gene"]])
   # if(show_missing == TRUE) {
@@ -35,7 +36,7 @@ get_data_for_plots <- function(presence_table, systems = unique(adhesins_df[["Sy
   plot_dat
 }
 
-
+#' @export
 get_presence_plot <- function(plot_dat) {
   ggplot(plot_dat, aes(x = File, y = Gene, fill = Presence)) +
     geom_tile() +

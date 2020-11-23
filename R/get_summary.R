@@ -1,3 +1,4 @@
+#' @export
 get_summary_table <- function(presence_table) {
   presence_table %>% 
     add_missing_genes() %>% 
@@ -9,7 +10,7 @@ get_summary_table <- function(presence_table) {
     pivot_wider(names_from = System, values_from = gene_percentage, values_fill = 0)
 }
 
-
+#' @export
 get_count_table <- function(presence_table) {
   presence_table %>% 
     add_missing_genes() %>% 
@@ -19,7 +20,7 @@ get_count_table <- function(presence_table) {
     summarise(gene_count = sum(Presence))
 }
 
-
+#' @export
 get_word_cloud <- function(count_table) {
   count_table[["System"]] <- gsub(" Adhesin| Adhesins| Fimbriae", "", count_table[["System"]])
   wordcloud(count_table[["System"]], count_table[["gene_count"]], 

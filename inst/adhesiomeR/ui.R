@@ -1,5 +1,9 @@
 library(shiny)
 library(DT)
+library(shinyWidgets)
+library(adhesiomeR)
+
+adhesins_df <- adhesiomeR::adhesins_df
 
 shinyUI(navbarPage("AdhesiomeR",
                    tabPanel("Introduction",

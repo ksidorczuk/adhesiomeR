@@ -1,0 +1,23 @@
+Package: adhesiomeR
+Type: Package
+Title: Analysis of the adhesiome in R
+Version: 1.0
+LazyData: TRUE
+Date: 2020-05-19
+Authors@R: c(person("Katarzyna", "Sidorczuk", 
+           email = "sidorczuk.katarzyna17@gmail.com",
+           role = c("cre", "aut"),
+           comment = c(ORCID = "0000-0001-6576-9054")))
+Description: ...
+License: GPL-3
+URL: https://github.com/ksidorczuk/adhesiomeR
+BugReports: https://github.com/ksidorczuk/adhesiomeR/issues
+Encoding: UTF-8
+Depends:
+    R (>= 3.5.0)
+Imports:
+    dplyr
+Suggests:
+Repository: CRAN
+Language: en-US
+RoxygenNote: 7.1.1

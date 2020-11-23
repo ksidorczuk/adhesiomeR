@@ -1,15 +1,18 @@
 library(shiny)
 library(DT)
+library(adhesiomeR)
 library(biogram)
 library(dplyr)
 library(ggplot2)
 library(shinyWidgets)
 
-load("../data/adhesins_df.rda")
-source("utils.R")
-source("../R/get_presence.R")
-source("../R/get_system_plot.R")
-source("../R/utils.R")
+adhesins_df <- adhesiomeR::adhesins_df
+# 
+# load("../data/adhesins_df.rda")
+# source("utils.R")
+# source("../R/get_presence.R")
+# source("../R/get_system_plot.R")
+# source("../R/utils.R")
 
 options(shiny.maxRequestSize=10*1024^2)
 
