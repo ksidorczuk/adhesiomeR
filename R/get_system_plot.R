@@ -1,3 +1,4 @@
+#' @export
 get_system_plot <- function(plot_dat, system) {
     filter(plot_dat, System == system) %>% 
     ggplot(aes(x = Gene, y = File, fill = Presence)) +

@@ -12,7 +12,7 @@ get_blast_res <- function(input_file) {
   input_seqs <- read_fasta(input_file)
   input <- tempfile(tmpdir = getwd())
   output <- tempfile(tmpdir = getwd())
-  blast_command <- paste0("blastn -db ../db/adhesins -query ", input, " -out ", output, " -outfmt 6")
+  blast_command <- paste0("blastn -db ../../db/adhesins -query ", input, " -out ", output, " -outfmt 6")
   write_fasta(input_seqs, input)
   system(blast_command)
   res <- read.delim(output, header = FALSE)

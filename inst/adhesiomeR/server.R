@@ -5,11 +5,13 @@ library(biogram)
 library(dplyr)
 library(ggplot2)
 library(shinyWidgets)
+library(tidyr)
+library(wordcloud)
 
 adhesins_df <- adhesiomeR::adhesins_df
 # 
 # load("../data/adhesins_df.rda")
-# source("utils.R")
+source("utils.R")
 # source("../R/get_presence.R")
 # source("../R/get_system_plot.R")
 # source("../R/utils.R")
