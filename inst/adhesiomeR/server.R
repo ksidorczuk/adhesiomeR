@@ -8,7 +8,7 @@ library(shinyWidgets)
 library(tidyr)
 library(wordcloud)
 
-adhesins_df <- adhesiomeR::adhesins_df
+data(adhesins_df)
 # 
 # load("../data/adhesins_df.rda")
 source("utils.R")
@@ -60,6 +60,7 @@ shinyServer(function(input, output, session) {
     output[["blast_res"]] <- renderDataTable({
         req(blast_results)
          blast_results() %>% 
+           mutate(Subject = sapply(Subject, function(i) strsplit(i, "~")[[1]][2])) %>% 
             my_DT()
     })
     
