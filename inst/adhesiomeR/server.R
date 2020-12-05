@@ -23,27 +23,29 @@ shinyServer(function(input, output, session) {
     all_systems <- unique(adhesins_df[["System"]])
     
     output[["input_tab"]] <- renderText({
-      req(input[["seq_file"]])
+      validate(need(input[["seq_file"]], "Please upload your files in a FASTA format."))
       input[["seq_file"]][["name"]]
     })
     
-    
-    blast_results <- reactive({
-        req(input[["seq_file"]])
+      blast_results <- eventReactive(input[["blast"]], {
+        validate(
+          need(input[["seq_file"]], "Please provide a fasta file.")
+        )
         # if(length(input[["seq_file"]][, 1]) > 3) {
         #     stop("Too many files. You can analyze up to three genomes at once.")
         # }
         lapply(1:length(input[["seq_file"]][, 1]), function(i) {
-            get_blast_res(input[["seq_file"]][[i, 4]]) %>% 
-                mutate(File = input[["seq_file"]][[i, 1]])
+          get_blast_res(input[["seq_file"]][[i, 4]]) %>% 
+            mutate(File = input[["seq_file"]][[i, 1]])
         }) %>% bind_rows()
-    })
+      })
     
 
 
     presence_tab <- reactive({
-        req(blast_results)
-        get_presence_table(blast_results())
+        validate(need(blast_results, "Please run blast first."))
+        get_presence_table(blast_results(), 
+                           identity_threshold = input[["identity"]], evalue_treshold = input[["evalue"]])
     })
     
     selected_systems <- reactive({
@@ -58,7 +60,7 @@ shinyServer(function(input, output, session) {
     
 
     output[["blast_res"]] <- renderDataTable({
-        req(blast_results)
+        validate(need(blast_results, "Please run blast first."))
          blast_results() %>% 
            mutate(Subject = sapply(Subject, function(i) strsplit(i, "~")[[1]][2])) %>% 
             my_DT()
