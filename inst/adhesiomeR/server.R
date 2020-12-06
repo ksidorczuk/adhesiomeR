@@ -103,10 +103,14 @@ shinyServer(function(input, output, session) {
           local({
               my_i <- i
               systems <- reactive({unique(plot_system_dat()[["System"]])})
-              output[[paste0("systems_plot", my_i)]] <- renderPlot({
-                  filter(plot_system_dat(), System == systems()[[my_i]]) %>%
-                      get_system_plot(., systems()[[my_i]])
+              system_data <- reactive({
+                filter(plot_system_dat(), System == systems()[[my_i]])
               })
+              nr <- reactive({nrow(system_data())})
+              nc <- reactive({ncol(system_data())})
+              output[[paste0("systems_plot", my_i)]] <- renderPlot({
+                get_system_plot(system_data(), systems()[[my_i]])
+              }, height = 100+15*nc(), width = 300+10*nr())
           })
       }
   })

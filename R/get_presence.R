@@ -30,9 +30,21 @@ get_data_for_plots <- function(presence_table, systems = unique(adhesins_df[["Sy
     pivot_longer(., 2:ncol(.), names_to = "Gene", values_to = "Presence") %>% 
     filter(Gene %in% selected_genes)
   
-  plot_dat[["Gene"]] <- factor(plot_dat[["Gene"]], levels = all_genes)
-  plot_dat[["Presence"]] <- as.factor(plot_dat[["Presence"]]) 
+  if(nrow(presence_table) > 1) {
+    dendro_files <- as.dendrogram(hclust(d = dist(x = as.matrix(presence_table[, 2:ncol(presence_table)]))))
+    files_order <- order.dendrogram(dendro_files)
+    dendro_genes <- as.dendrogram(hclust(d = dist(t(as.matrix(presence_table[, 2:ncol(presence_table)])))))
+    genes_order <- order.dendrogram(dendro_genes)
+    
+    plot_dat[["Gene"]] <- factor(plot_dat[["Gene"]], 
+                                 levels = colnames(presence_table[2:ncol(presence_table)][genes_order]),
+                                 ordered = TRUE)
+    plot_dat[["File"]] <- factor(plot_dat[["File"]],
+                                 levels = presence_table[["File"]][files_order],
+                                 ordered = TRUE) 
+  }
   
+  plot_dat[["Presence"]] <- as.factor(plot_dat[["Presence"]])
   plot_dat
 }
 
