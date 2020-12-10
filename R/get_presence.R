@@ -44,7 +44,7 @@ get_data_for_plots <- function(presence_table, systems = unique(adhesins_df[["Sy
                                  ordered = TRUE) 
   }
   
-  plot_dat[["Presence"]] <- as.factor(plot_dat[["Presence"]])
+  plot_dat[["Presence"]] <- factor(ifelse(plot_dat[["Presence"]] == 1, "yes", "no"), levels = c("yes", "no"))
   plot_dat
 }
 
@@ -52,7 +52,9 @@ get_data_for_plots <- function(presence_table, systems = unique(adhesins_df[["Sy
 get_presence_plot <- function(plot_dat, presence_col = "#e42b24", absence_col = "#85c1ff") {
   ggplot(plot_dat, aes(x = File, y = Gene, fill = Presence)) +
     geom_tile() +
-    scale_fill_manual("Presence", values = c("1" = presence_col, "0" = absence_col)) +
-    plot_theme()
+    scale_fill_manual("Presence", values = c("yes" = presence_col, "no" = absence_col), drop = FALSE) +
+    scale_x_discrete(position = "top") +
+    plot_theme() +
+    theme(legend.direction = "vertical")
 }
 

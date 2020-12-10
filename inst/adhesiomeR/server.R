@@ -137,7 +137,7 @@ shinyServer(function(input, output, session) {
                 get_system_plot(system_data(), systems()[[my_i]], 
                                 presence_col = input[["presence_col"]], 
                                 absence_col = input[["absence_col"]])
-              }, width = 300+10*nr(), height = 100+15*nc())
+              }, width = 320+10*nr(), height = 60+15*nc())
           })
       }
   })
