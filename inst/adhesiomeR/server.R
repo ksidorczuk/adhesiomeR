@@ -105,8 +105,9 @@ shinyServer(function(input, output, session) {
   
   observe({
       output[["systems_plots"]] <- renderUI({
+          nc <- reactive({ncol(plot_system_dat())})
           systems_plots_list <- lapply(1L:length(unique(plot_system_dat()[["System"]])), function(i) {
-              list(plotOutput(paste0("systems_plot", i)))
+              list(plotOutput(paste0("systems_plot", i), height = 150+15*nc()))
           })
       })
 
@@ -121,7 +122,7 @@ shinyServer(function(input, output, session) {
               nc <- reactive({ncol(system_data())})
               output[[paste0("systems_plot", my_i)]] <- renderPlot({
                 get_system_plot(system_data(), systems()[[my_i]])
-              }, height = 100+15*nc(), width = 300+10*nr())
+              }, width = 300+10*nr(), height = 100+15*nc())
           })
       }
   })
