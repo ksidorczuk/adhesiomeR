@@ -31,13 +31,24 @@ shinyServer(function(input, output, session) {
         validate(
           need(input[["seq_file"]], "Please provide a fasta file.")
         )
+        progress <- shiny::Progress$new(min = 0, max = length(input[["seq_file"]][, 1]))
+        progress$set(message = "Running BLAST", value = 0)
+        on.exit(progress$close())
+        
+        updateProgress <- function(value = NULL, detail = NULL) {
+          progress$set(value = value, detail = detail)
+        }
         # if(length(input[["seq_file"]][, 1]) > 3) {
         #     stop("Too many files. You can analyze up to three genomes at once.")
         # }
-        lapply(1:length(input[["seq_file"]][, 1]), function(i) {
-          get_blast_res(input[["seq_file"]][[i, 4]]) %>% 
-            mutate(File = input[["seq_file"]][[i, 1]])
-        }) %>% bind_rows()
+        res <- run_blast(input[["seq_file"]], updateProgress)
+        progress$set(value = progress[["getMax"]]())
+        res
+
+        # lapply(1:length(input[["seq_file"]][, 1]), function(i) {
+        #   get_blast_res(input[["seq_file"]][[i, 4]]) %>% 
+        #     mutate(File = input[["seq_file"]][[i, 1]])
+        # }) %>% bind_rows()
       })
     
 
