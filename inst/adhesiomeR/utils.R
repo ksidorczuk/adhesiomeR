@@ -8,7 +8,6 @@ my_DT <- function(x, ...)
             style = "bootstrap")
 
 
-
 get_blast_res <- function(input_file) {
   validate_input_file(input_file)
   input_seqs <- read_fasta(input_file)
@@ -40,4 +39,13 @@ run_blast <- function(input, updateProgress = NULL) {
     res_df <- rbind(res_df, temp)
   } 
   res_df
+}
+
+
+plot_theme <- function() {
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        legend.position = "bottom")
 }

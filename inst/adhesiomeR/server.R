@@ -22,6 +22,17 @@ shinyServer(function(input, output, session) {
     
     all_systems <- unique(adhesins_df[["System"]])
     
+    plot_cols <- reactiveValues(presence_col = "#e00e00",
+                                absence_col = "#85c1ff")
+    
+    observeEvent(input[["presence_col"]], {
+      plot_cols[["presence_col"]] <- input[["presence_col"]]
+    })
+    
+    observeEvent(input[["absence_col"]], {
+      plot_cols[["absence_col"]] <- input[["absence_col"]]
+    })
+    
     output[["input_tab"]] <- renderText({
       validate(need(input[["seq_file"]], "Please upload your files in a FASTA format."))
       input[["seq_file"]][["name"]]
@@ -93,7 +104,9 @@ shinyServer(function(input, output, session) {
     
   observe({
       output[["presence_plot"]] <- renderPlot({
-          get_presence_plot(presence_plot_dat())
+          get_presence_plot(presence_plot_dat(),
+                            presence_col = input[["presence_col"]], 
+                            absence_col = input[["absence_col"]])
       }, height = 300+10*nrow(presence_plot_dat()), width = 50+20*ncol(presence_plot_dat()))
   })
 
@@ -121,7 +134,9 @@ shinyServer(function(input, output, session) {
               nr <- reactive({nrow(system_data())})
               nc <- reactive({ncol(system_data())})
               output[[paste0("systems_plot", my_i)]] <- renderPlot({
-                get_system_plot(system_data(), systems()[[my_i]])
+                get_system_plot(system_data(), systems()[[my_i]], 
+                                presence_col = input[["presence_col"]], 
+                                absence_col = input[["absence_col"]])
               }, width = 300+10*nr(), height = 100+15*nc())
           })
       }
