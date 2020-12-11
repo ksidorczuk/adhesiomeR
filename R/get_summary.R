@@ -10,6 +10,20 @@ get_summary_table <- function(presence_table) {
     pivot_wider(names_from = System, values_from = gene_percentage, values_fill = 0)
 }
 
+
+#' @export
+get_summary_plot <- function(presence_table, presence_col = "#e42b24", absence_col = "#85c1ff") {
+  presence_table %>% 
+    get_summary_table() %>% 
+    pivot_longer(., 2:ncol(.), names_to = "System", values_to = "Percentage of present genes") %>% 
+    ggplot(aes(x = System, y = File, fill = as.numeric(`Percentage of present genes`))) +
+    geom_tile() +
+    scale_fill_gradient(low = absence_col, high = presence_col, name = "Percentage of present genes") +
+    scale_x_discrete(position = "top") +
+    plot_theme()
+
+}
+
 #' @export
 get_count_table <- function(presence_table) {
   presence_table %>% 
