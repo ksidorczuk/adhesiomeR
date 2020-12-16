@@ -44,18 +44,18 @@ shinyServer(function(input, output, session) {
         validate(
           need(input[["seq_file"]], "Please provide a fasta file.")
         )
-        progress <- shiny::Progress$new(min = 0, max = length(input[["seq_file"]][, 1]))
-        progress$set(message = "Running BLAST", value = 0)
-        on.exit(progress$close())
-        
-        updateProgress <- function(value = NULL, detail = NULL) {
-          progress$set(value = value, detail = detail)
-        }
+        # progress <- shiny::Progress$new(min = 0, max = length(input[["seq_file"]][, 1]))
+        # progress$set(message = "Running BLAST", value = 0)
+        # on.exit(progress$close())
+        # 
+        # updateProgress <- function(value = NULL, detail = NULL) {
+        #   progress$set(value = value, detail = detail)
+        # }
         # if(length(input[["seq_file"]][, 1]) > 3) {
         #     stop("Too many files. You can analyze up to three genomes at once.")
         # }
         res <- run_blast(input[["seq_file"]], input[["n_threads"]], updateProgress)
-        progress$set(value = progress[["getMax"]]())
+        #progress$set(value = progress[["getMax"]]())
         res
 
         # lapply(1:length(input[["seq_file"]][, 1]), function(i) {
@@ -91,19 +91,22 @@ shinyServer(function(input, output, session) {
     })
     
     
-    output[["presence_table"]] <- renderDataTable({
-        my_DT(presence_tab())
-    })
+    # output[["presence_table"]] <- renderDataTable({
+    #     my_DT(presence_tab())
+    # })
     
-    output[["systems_summary_table"]] <- renderDataTable({
-      get_summary_table(presence_tab()) %>% 
-        my_DT()
-    })
+    # output[["systems_summary_table"]] <- renderDataTable({
+    #   get_summary_table(presence_tab()) %>% 
+    #     my_DT()
+    # })
+    summary_table <- reactive({
+      get_summary_table(presence_tab(), hide_absent = input[["systems_summary_hide_missing"]])
+      })
     
   observe({
     output[["systems_summary_plot"]] <- renderPlot({
-      get_summary_plot(presence_tab())
-    })
+      get_summary_plot(presence_tab(), hide_absent = input[["systems_summary_hide_missing"]])
+    }, height = 200+10*nrow(summary_table()), width = 300+10*ncol(summary_table()))
   })  
 
     output[["wordcloud"]] <- renderPlot({

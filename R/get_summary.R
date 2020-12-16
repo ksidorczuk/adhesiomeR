@@ -1,22 +1,40 @@
 #' @export
-get_summary_table <- function(presence_table) {
-  presence_table %>% 
+get_summary_table <- function(presence_table, hide_absent = FALSE) {
+  res <- presence_table %>% 
     add_missing_genes() %>% 
     pivot_longer(., 2:ncol(.), names_to = "Gene", values_to = "Presence") %>% 
     left_join(adhesins_df) %>% 
     group_by(File, System) %>% 
-    summarise(gene_percentage = round(sum(Presence)*100/n(), 2)) %>% 
-    filter(gene_percentage > 0) %>% 
-    pivot_wider(names_from = System, values_from = gene_percentage, values_fill = 0)
+    summarise(gene_percentage = round(sum(Presence)*100/n(), 2))
+  
+  if(hide_absent == TRUE) {
+    res <- filter(res, gene_percentage > 0)
+  }
+  pivot_wider(res, names_from = System, values_from = gene_percentage, values_fill = 0)
 }
 
 
 #' @export
-get_summary_plot <- function(presence_table, presence_col = "#e42b24", absence_col = "#85c1ff") {
-  presence_table %>% 
-    get_summary_table() %>% 
-    pivot_longer(., 2:ncol(.), names_to = "System", values_to = "Percentage of present genes") %>% 
-    ggplot(aes(x = System, y = File, fill = as.numeric(`Percentage of present genes`))) +
+get_summary_plot <- function(presence_table, hide_absent = FALSE, presence_col = "#e42b24", absence_col = "#85c1ff") {
+  summary_dat <- presence_table %>% 
+    get_summary_table(., hide_absent) 
+  plot_dat <- summary_dat %>% 
+    pivot_longer(., 2:ncol(.), names_to = "System", values_to = "Percentage of present genes") 
+  
+  if(nrow(presence_table) > 1) {
+    dendro_files <- as.dendrogram(hclust(d = dist(x = as.matrix(summary_dat[, 2:ncol(summary_dat)]))))
+    files_order <- order.dendrogram(dendro_files)
+    dendro_systems <- as.dendrogram(hclust(d = dist(t(as.matrix(summary_dat[, 2:ncol(summary_dat)])))))
+    systems_order <- order.dendrogram(dendro_systems)
+    
+    plot_dat[["System"]] <- factor(plot_dat[["System"]], 
+                                 levels = colnames(summary_dat)[2:ncol(summary_dat)][systems_order],
+                                 ordered = TRUE)
+    plot_dat[["File"]] <- factor(plot_dat[["File"]],
+                                 levels = summary_dat[["File"]][files_order],
+                                 ordered = TRUE) 
+  }
+    ggplot(plot_dat, aes(x = System, y = File, fill = as.numeric(`Percentage of present genes`))) +
     geom_tile() +
     scale_fill_gradient(low = absence_col, high = presence_col, name = "Percentage of present genes") +
     scale_x_discrete(position = "top") +
