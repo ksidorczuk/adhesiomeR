@@ -8,7 +8,7 @@ my_DT <- function(x, ...)
             style = "bootstrap")
 
 
-get_blast_res <- function(input_file) {
+get_blast_res <- function(input_file, nt) {
   validate_input_file(input_file)
   input_seqs <- read_fasta(input_file)
   input <- tempfile(tmpdir = getwd())
@@ -25,20 +25,35 @@ get_blast_res <- function(input_file) {
 }
 
 
-run_blast <- function(input, updateProgress = NULL) {
+run_blast <- function(input_files, nt, updateProgress = NULL) {
+  parallel_cluster <- makePSOCKcluster(nt)
+  registerDoParallel(parallel_cluster)
   
-  res_df <- data.frame()
-  for(i in 1:length(input[, 1])) {
-    if (is.function(updateProgress)) {
-      text <- paste0("Processing file: ", input[[i, 1]])
-      updateProgress(detail = text)
-    }
-    temp <- get_blast_res(input[[i, 4]]) %>% 
-      mutate(File = input[[i, 1]])
-    updateProgress(value = 1)
-    res_df <- rbind(res_df, temp)
+  res <- foreach(i = 1:length(input_files[, 1]), .combine = rbind, .packages = c('dplyr', 'adhesiomeR', 'biogram')) %dopar% {
+    
+    # if (is.function(updateProgress)) {
+    #   text <- paste0("Processing file: ", input_files[[i, 1]])
+    #   updateProgress(detail = text)
+    # }
+    # 
+    validate_input_file(input_files[[i, 4]])
+    input_seqs <- read_fasta(input_files[[i, 4]])
+    input <- tempfile(tmpdir = getwd())
+    output <- tempfile(tmpdir = getwd())
+    blast_command <- paste0("blastn -db ../../db/adhesins -query ", input, " -out ", output, " -outfmt 6")
+    write_fasta(input_seqs, input)
+    system(blast_command)
+    
+    res <- read.delim(output, header = FALSE)
+    colnames(res) <- c("Query", "Subject", "% identity", "Alignment length", "Mismatches",
+                       "Gap opens", "Query start", "Query end", "Subject start", "Subject end", "Evalue", "Bit score")
+
+    file.remove(input, output)
+   # updateProgress(value = 1)
+    mutate(res, File = input_files[[i, 1]])
   } 
-  res_df
+  stopCluster(parallel_cluster)
+  res
 }
 
 

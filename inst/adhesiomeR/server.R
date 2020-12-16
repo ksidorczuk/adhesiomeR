@@ -7,6 +7,8 @@ library(ggplot2)
 library(shinyWidgets)
 library(tidyr)
 library(wordcloud)
+library(foreach)
+library(doParallel)
 
 data(adhesins_df)
 # 
@@ -52,7 +54,7 @@ shinyServer(function(input, output, session) {
         # if(length(input[["seq_file"]][, 1]) > 3) {
         #     stop("Too many files. You can analyze up to three genomes at once.")
         # }
-        res <- run_blast(input[["seq_file"]], updateProgress)
+        res <- run_blast(input[["seq_file"]], input[["n_threads"]], updateProgress)
         progress$set(value = progress[["getMax"]]())
         res
 
@@ -113,7 +115,7 @@ shinyServer(function(input, output, session) {
           get_presence_plot(presence_plot_dat(),
                             presence_col = input[["presence_col"]], 
                             absence_col = input[["absence_col"]])
-      }, height = 300+10*nrow(presence_plot_dat()), width = 50+20*ncol(presence_plot_dat()))
+      }, height = 300+10*length(unique(presence_plot_dat()[["File"]])), width = 50+20*length(unique(presence_plot_dat()[["Gene"]])))
   })
 
   
@@ -126,7 +128,7 @@ shinyServer(function(input, output, session) {
       output[["systems_plots"]] <- renderUI({
           nc <- reactive({ncol(plot_system_dat())})
           systems_plots_list <- lapply(1L:length(unique(plot_system_dat()[["System"]])), function(i) {
-              list(plotOutput(paste0("systems_plot", i), height = 150+15*nc()))
+              list(plotOutput(paste0("systems_plot", i), width = 150+15*nc()))
           })
       })
 
@@ -137,13 +139,13 @@ shinyServer(function(input, output, session) {
               system_data <- reactive({
                 filter(plot_system_dat(), System == systems()[[my_i]])
               })
-              nr <- reactive({nrow(system_data())})
-              nc <- reactive({ncol(system_data())})
+              nr <- reactive({length(unique(system_data()[["File"]]))})
+              nc <- reactive({length(unique(system_data()[["Gene"]]))})
               output[[paste0("systems_plot", my_i)]] <- renderPlot({
                 get_system_plot(system_data(), systems()[[my_i]], 
                                 presence_col = input[["presence_col"]], 
                                 absence_col = input[["absence_col"]])
-              }, width = 320+10*nr(), height = 60+15*nc())
+              }, width = 320+10*nc(), height = 60+15*nr())
           })
       }
   })
