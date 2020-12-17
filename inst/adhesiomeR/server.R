@@ -92,14 +92,20 @@ shinyServer(function(input, output, session) {
       get_word_cloud(get_count_table(presence_tab()))
     })
     
+    
+    all_genes_plot_dat <- reactive({
+      get_presence_table(blast_results(), add_missing = !input[["all_genes_hide_missing"]]) %>% 
+        get_data_for_plots()
+    })
+    
   observe({
       output[["presence_plot"]] <- renderPlot({
+        req(all_genes_plot_dat)
      #   validate(need(is.null(presence_plot_dat), "Please run BLAST to see the results."))
-          get_presence_plot(presence_tab(),
-                            all_systems,
+          get_presence_plot(all_genes_plot_dat(),
                             presence_col = input[["presence_col"]], 
                             absence_col = input[["absence_col"]])
-      }, height = 400+10*ncol(presence_tab()), width = 100+10*nrow(presence_tab()))
+      }, height = 100+10*length(unique(all_genes_plot_dat()[["Gene"]])), width = 100+10*length(unique(all_genes_plot_dat()[["File"]])))
   })
 
   

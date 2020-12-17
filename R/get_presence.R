@@ -49,10 +49,8 @@ get_data_for_plots <- function(presence_table, systems = unique(adhesins_df[["Sy
 }
 
 #' @export
-get_presence_plot <- function(presence_table, systems = unique(adhesins_df[["System"]]), presence_col = "#e42b24", absence_col = "#85c1ff") {
-  presence_table %>% 
-    get_data_for_plots(., systems) %>% 
-    ggplot(., aes(x = File, y = Gene, fill = Presence)) +
+get_presence_plot <- function(plot_dat, presence_col = "#e42b24", absence_col = "#85c1ff") {
+  ggplot(plot_dat, aes(x = File, y = Gene, fill = Presence)) +
     geom_tile() +
     scale_fill_manual("Presence", values = c("yes" = presence_col, "no" = absence_col), drop = FALSE) +
     scale_x_discrete(position = "top") +

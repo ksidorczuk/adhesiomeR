@@ -80,6 +80,9 @@ shinyUI(navbarPage("AdhesiomeR",
                             plotOutput("wordcloud")
                             ),
                    tabPanel("All genes plot",
+                            checkboxInput("all_genes_hide_missing",
+                                          "Hide genes not found in any genome.",
+                                          value = FALSE),
                             plotOutput("presence_plot")),
                    tabPanel("Systems plots",
                             uiOutput("systems_plots"))
