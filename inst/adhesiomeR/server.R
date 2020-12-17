@@ -11,12 +11,8 @@ library(foreach)
 library(doParallel)
 
 data(adhesins_df)
-# 
-# load("../data/adhesins_df.rda")
+
 source("utils.R")
-# source("../R/get_presence.R")
-# source("../R/get_system_plot.R")
-# source("../R/utils.R")
 
 options(shiny.maxRequestSize=10*1024^2)
 
@@ -35,39 +31,20 @@ shinyServer(function(input, output, session) {
       plot_cols[["absence_col"]] <- input[["absence_col"]]
     })
     
-    output[["input_tab"]] <- renderText({
+    output[["input_tab"]] <- renderTable({
       validate(need(input[["seq_file"]], "Please upload your files in a FASTA format."))
-      input[["seq_file"]][["name"]]
+      data.frame(`Uploaded files` = input[["seq_file"]][["name"]], check.names = FALSE)
     })
     
-      blast_results <- eventReactive(input[["blast"]], {
-        validate(
-          need(input[["seq_file"]], "Please provide a fasta file.")
-        )
-        # progress <- shiny::Progress$new(min = 0, max = length(input[["seq_file"]][, 1]))
-        # progress$set(message = "Running BLAST", value = 0)
-        # on.exit(progress$close())
-        # 
-        # updateProgress <- function(value = NULL, detail = NULL) {
-        #   progress$set(value = value, detail = detail)
-        # }
-        # if(length(input[["seq_file"]][, 1]) > 3) {
-        #     stop("Too many files. You can analyze up to three genomes at once.")
-        # }
-        res <- run_blast(input[["seq_file"]], input[["n_threads"]], updateProgress)
-        #progress$set(value = progress[["getMax"]]())
-        res
-
-        # lapply(1:length(input[["seq_file"]][, 1]), function(i) {
-        #   get_blast_res(input[["seq_file"]][[i, 4]]) %>% 
-        #     mutate(File = input[["seq_file"]][[i, 1]])
-        # }) %>% bind_rows()
-      })
+    blast_results <- eventReactive(input[["blast"]], {
+      req(input[["seq_file"]])
+      run_blast(input[["seq_file"]], input[["n_threads"]], updateProgress)
+      
+    })
     
 
-
     presence_tab <- reactive({
-        validate(need(blast_results, "Please run blast first."))
+    #  validate(need(input[["blast"]], "Please run BLAST to see the results."))
         get_presence_table(blast_results(), 
                            identity_threshold = input[["identity"]], evalue_treshold = input[["evalue"]])
     })
@@ -78,13 +55,14 @@ shinyServer(function(input, output, session) {
     })
     
     presence_plot_dat <- reactive({
-        req(presence_tab)
+      #req(presence_tab)
+      validate(need(presence_tab, "Please run BLAST to see the results."))
         get_data_for_plots(presence_tab(), input[["systems"]])
     })
     
 
     output[["blast_res"]] <- renderDataTable({
-        validate(need(blast_results, "Please run blast first."))
+      #validate(need(nrow(blast_results() > 0), "Please run BLAST to see the results."))
          blast_results() %>% 
            mutate(Subject = sapply(Subject, function(i) strsplit(i, "~")[[1]][2])) %>% 
             my_DT()
@@ -105,6 +83,7 @@ shinyServer(function(input, output, session) {
     
   observe({
     output[["systems_summary_plot"]] <- renderPlot({
+     # validate(need(is.null(blast_results), "Please run BLAST to see the results."))
       get_summary_plot(presence_tab(), hide_absent = input[["systems_summary_hide_missing"]])
     }, height = 200+10*nrow(summary_table()), width = 300+10*ncol(summary_table()))
   })  
@@ -115,10 +94,12 @@ shinyServer(function(input, output, session) {
     
   observe({
       output[["presence_plot"]] <- renderPlot({
-          get_presence_plot(presence_plot_dat(),
+     #   validate(need(is.null(presence_plot_dat), "Please run BLAST to see the results."))
+          get_presence_plot(presence_tab(),
+                            all_systems,
                             presence_col = input[["presence_col"]], 
                             absence_col = input[["absence_col"]])
-      }, height = 300+10*length(unique(presence_plot_dat()[["File"]])), width = 50+20*length(unique(presence_plot_dat()[["Gene"]])))
+      }, height = 400+10*ncol(presence_tab()), width = 100+10*nrow(presence_tab()))
   })
 
   

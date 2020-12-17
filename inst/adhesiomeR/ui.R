@@ -63,7 +63,7 @@ shinyUI(navbarPage("AdhesiomeR",
                                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
                             ),
                             mainPanel(width = 6,
-                                      textOutput("input_tab"))
+                                      tableOutput("input_tab"))
                    ),
                    
                    tabPanel("Search results",
