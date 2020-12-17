@@ -85,6 +85,9 @@ shinyUI(navbarPage("AdhesiomeR",
                                           value = FALSE),
                             plotOutput("presence_plot")),
                    tabPanel("Systems plots",
+                            checkboxInput("systems_hide_missing",
+                                          "Hide systems not found in any genome.",
+                                          value = FALSE),
                             uiOutput("systems_plots"))
                    
                    

@@ -88,6 +88,11 @@ shinyServer(function(input, output, session) {
     }, height = 200+10*nrow(summary_table()), width = 300+10*ncol(summary_table()))
   })  
 
+  absent_systems <- reactive({
+    summary_tab <- get_summary_table(presence_tab())
+    names(summary_tab[, 2:ncol(summary_tab)][which(colSums(summary_tab[, 2:ncol(summary_tab)]) == 0)])
+  })
+  
     output[["wordcloud"]] <- renderPlot({
       get_word_cloud(get_count_table(presence_tab()))
     })
@@ -110,8 +115,12 @@ shinyServer(function(input, output, session) {
 
   
   plot_system_dat <- reactive({
-      req(presence_plot_dat)
-      left_join(presence_plot_dat(), adhesins_df, by = "Gene")
+    req(presence_plot_dat)
+    df <- left_join(presence_plot_dat(), adhesins_df, by = "Gene") 
+    if(input[["systems_hide_missing"]] == TRUE) {
+      df <- filter(df, !(System %in% absent_systems()))
+    }
+    ungroup(df)
   })
   
   observe({
@@ -121,18 +130,19 @@ shinyServer(function(input, output, session) {
               list(plotOutput(paste0("systems_plot", i), width = 150+15*nc()))
           })
       })
+      
+      systems <- reactive({unique(plot_system_dat()[["System"]])})
 
       for(i in 1L:length(unique(plot_system_dat()[["System"]]))) {
           local({
               my_i <- i
-              systems <- reactive({unique(plot_system_dat()[["System"]])})
               system_data <- reactive({
-                filter(plot_system_dat(), System == systems()[[my_i]])
+                filter(plot_system_dat(), System == systems()[my_i])
               })
               nr <- reactive({length(unique(system_data()[["File"]]))})
               nc <- reactive({length(unique(system_data()[["Gene"]]))})
               output[[paste0("systems_plot", my_i)]] <- renderPlot({
-                get_system_plot(system_data(), systems()[[my_i]], 
+                get_system_plot(system_data(), systems()[my_i], 
                                 presence_col = input[["presence_col"]], 
                                 absence_col = input[["absence_col"]])
               }, width = 320+10*nc(), height = 60+15*nr())

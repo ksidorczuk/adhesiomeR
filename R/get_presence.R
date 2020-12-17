@@ -20,10 +20,7 @@ get_presence_table <- function(blast_res, add_missing = TRUE, identity_threshold
 #' @export
 get_data_for_plots <- function(presence_table, systems = unique(adhesins_df[["System"]])) {
   all_genes <- unique(adhesins_df[["Gene"]])
-  # if(show_missing == TRUE) {
-  #   missing <- all_genes[which(!(all_genes %in% colnames(presence_table)))]
-  #   presence_table <- cbind(presence_table, setNames(lapply(missing, function(x) x = 0), missing))
-  # }
+
   selected_genes <- unique(filter(adhesins_df, System %in% systems)[["Gene"]])
   
   plot_dat <- presence_table %>% 
@@ -46,6 +43,7 @@ get_data_for_plots <- function(presence_table, systems = unique(adhesins_df[["Sy
   
   plot_dat[["Presence"]] <- factor(ifelse(plot_dat[["Presence"]] == 1, "yes", "no"), levels = c("yes", "no"))
   plot_dat
+  
 }
 
 #' @export
