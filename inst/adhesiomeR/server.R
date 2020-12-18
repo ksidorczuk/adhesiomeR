@@ -9,6 +9,8 @@ library(tidyr)
 library(wordcloud)
 library(foreach)
 library(doParallel)
+library(pander)
+library(rmarkdown)
 
 data(adhesins_df)
 
@@ -163,16 +165,21 @@ shinyServer(function(input, output, session) {
   })
 
   
-  # observeEvent(input[["filtering_button"]], {
-  # 
-  #   output[["systems_summary_plot"]] <- renderPlot({
-  #     # validate(need(is.null(blast_results), "Please run BLAST to see the results."))
-  #     get_summary_plot(presence_tab(), hide_absent = input[["systems_summary_hide_missing"]], 
-  #                      presence_col = isolate(filters[["presence_col"]]),
-  #                      absence_col = isolate(filters[["absence_col"]]))
-  #   }, height = 200+10*nrow(summary_table()), width = 300+10*ncol(summary_table()))
-  # 
-  # })
-
+  output[["download"]] <- downloadHandler(
+    filename = "adhesiomeR_results.html",
+    content <- function(file) {
+      src <- normalizePath("adhesiomeR-report.Rmd")
+      
+      input_files <- input[["seq_file"]][["name"]]
+      # temporarily switch to the temp dir, in case you do not have write
+      # permission to the current working directory
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      file.copy(src, "adhesiomeR-report.Rmd", overwrite = TRUE)
+      out <- rmarkdown::render("adhesiomeR-report.Rmd", output_format = "html_document", file, quiet = FALSE,
+                               input_files)
+      file.rename(out, file)
+    }
+  )
   
 })

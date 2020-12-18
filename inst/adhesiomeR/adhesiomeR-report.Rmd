@@ -1,0 +1,44 @@
+---
+title: "AdhesiomeR analysis report"
+output:
+  html_document:
+    theme: united
+    self_contained: true
+    toc: true
+    toc_float: true
+---
+
+<style>
+img {
+    max-width: none;
+
+    /* other options:
+    max-width: 200%;
+    max-width: 700px;
+    max-width: 9in;
+    max-width: 25cm;
+    etc
+    */
+}
+</style>
+
+```{r, results='asis', echo=FALSE}
+
+cat(paste0("**Date**: ", Sys.time()), "\n\n")
+
+cat("## Analyzed input files\n\n")
+print(knitr::kable(data.frame(`File name` = input_files)))
+cat("\n\n")
+
+```
+
+
+## About
+
+This analysis was provided by [**adhesiomeR**](https://github.com/ksidorczuk/adhesiomeR)
+
+```{r, echo=FALSE}
+pander(sessionInfo())
+```
+
+
