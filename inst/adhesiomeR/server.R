@@ -20,16 +20,30 @@ shinyServer(function(input, output, session) {
     
     all_systems <- unique(adhesins_df[["System"]])
     
-    plot_cols <- reactiveValues(presence_col = "#e00e00",
-                                absence_col = "#85c1ff")
+    filters <- reactiveValues(thresh = 50,
+                              evalue = 1e-50,
+                              systems = "Type 1 Fimbriae",
+                              presence_col = "#e00e00",
+                              absence_col = "#85c1ff")
     
-    observeEvent(input[["presence_col"]], {
-      plot_cols[["presence_col"]] <- input[["presence_col"]]
+    
+    observeEvent(input[["filtering_button"]], {
+      if(length(input[["systems"]]) < 1) {
+        showModal(modalDialog(
+          title = "Select at least one system!",
+          "You have to select at least one system for the filtering to work.",
+          easyClose = TRUE,
+          footer = modalButton("OK")
+        ))
+      }
+      validate(need(length(input[["systems"]]) > 0, ""))
+      filters[["thresh"]] <- input[["identity"]]
+      filters[["evalue"]] <- input[["evalue"]]
+      filters[["systems"]] <- input[["systems"]]
+      filters[["presence_col"]] <- input[["presence_col"]]
+      filters[["absence_col"]] <- input[["absence_col"]]
     })
     
-    observeEvent(input[["absence_col"]], {
-      plot_cols[["absence_col"]] <- input[["absence_col"]]
-    })
     
     output[["input_tab"]] <- renderTable({
       validate(need(input[["seq_file"]], "Please upload your files in a FASTA format."))
@@ -41,23 +55,19 @@ shinyServer(function(input, output, session) {
       run_blast(input[["seq_file"]], input[["n_threads"]], updateProgress)
       
     })
-    
+
 
     presence_tab <- reactive({
     #  validate(need(input[["blast"]], "Please run BLAST to see the results."))
         get_presence_table(blast_results(), 
-                           identity_threshold = input[["identity"]], evalue_treshold = input[["evalue"]])
+                           identity_threshold = filters[["thresh"]], evalue_treshold = filters[["evalue"]])
     })
-    
-    selected_systems <- reactive({
-        req(presence_tab)
-        input[["systems"]]
-    })
+
     
     presence_plot_dat <- reactive({
       #req(presence_tab)
       validate(need(presence_tab, "Please run BLAST to see the results."))
-        get_data_for_plots(presence_tab(), input[["systems"]])
+        get_data_for_plots(presence_tab(), filters[["systems"]])
     })
     
 
@@ -84,7 +94,9 @@ shinyServer(function(input, output, session) {
   observe({
     output[["systems_summary_plot"]] <- renderPlot({
      # validate(need(is.null(blast_results), "Please run BLAST to see the results."))
-      get_summary_plot(presence_tab(), hide_absent = input[["systems_summary_hide_missing"]])
+      get_summary_plot(presence_tab(), hide_absent = input[["systems_summary_hide_missing"]],
+                       presence_col = filters[["presence_col"]], 
+                       absence_col = filters[["absence_col"]])
     }, height = 200+10*nrow(summary_table()), width = 300+10*ncol(summary_table()))
   })  
 
@@ -100,7 +112,7 @@ shinyServer(function(input, output, session) {
     
     all_genes_plot_dat <- reactive({
       get_presence_table(blast_results(), add_missing = !input[["all_genes_hide_missing"]]) %>% 
-        get_data_for_plots()
+        get_data_for_plots(., filters[["systems"]])
     })
     
   observe({
@@ -108,9 +120,9 @@ shinyServer(function(input, output, session) {
         req(all_genes_plot_dat)
      #   validate(need(is.null(presence_plot_dat), "Please run BLAST to see the results."))
           get_presence_plot(all_genes_plot_dat(),
-                            presence_col = input[["presence_col"]], 
-                            absence_col = input[["absence_col"]])
-      }, height = 100+10*length(unique(all_genes_plot_dat()[["Gene"]])), width = 100+10*length(unique(all_genes_plot_dat()[["File"]])))
+                            presence_col = filters[["presence_col"]], 
+                            absence_col = filters[["absence_col"]])
+      }, height = 300+10*length(unique(all_genes_plot_dat()[["Gene"]])), width = 100+10*length(unique(all_genes_plot_dat()[["File"]])))
   })
 
   
@@ -143,12 +155,24 @@ shinyServer(function(input, output, session) {
               nc <- reactive({length(unique(system_data()[["Gene"]]))})
               output[[paste0("systems_plot", my_i)]] <- renderPlot({
                 get_system_plot(system_data(), systems()[my_i], 
-                                presence_col = input[["presence_col"]], 
-                                absence_col = input[["absence_col"]])
+                                presence_col = filters[["presence_col"]], 
+                                absence_col = filters[["absence_col"]])
               }, width = 320+10*nc(), height = 60+15*nr())
           })
       }
   })
+
+  
+  # observeEvent(input[["filtering_button"]], {
+  # 
+  #   output[["systems_summary_plot"]] <- renderPlot({
+  #     # validate(need(is.null(blast_results), "Please run BLAST to see the results."))
+  #     get_summary_plot(presence_tab(), hide_absent = input[["systems_summary_hide_missing"]], 
+  #                      presence_col = isolate(filters[["presence_col"]]),
+  #                      absence_col = isolate(filters[["absence_col"]]))
+  #   }, height = 200+10*nrow(summary_table()), width = 300+10*ncol(summary_table()))
+  # 
+  # })
 
   
 })
