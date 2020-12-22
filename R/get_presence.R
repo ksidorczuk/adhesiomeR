@@ -18,9 +18,25 @@ get_presence_table <- function(blast_res, add_missing = TRUE, identity_threshold
 
 
 #' @export
-get_data_for_plots <- function(presence_table, systems = unique(adhesins_df[["System"]])) {
-  all_genes <- unique(adhesins_df[["Gene"]])
+cluster_data <- function(df, data_to_cluster, var_name) {
+  dendro_files <- as.dendrogram(hclust(d = dist(x = as.matrix(data_to_cluster[, 2:ncol(data_to_cluster)]))))
+  files_order <- order.dendrogram(dendro_files)
+  dendro_var <- as.dendrogram(hclust(d = dist(t(as.matrix(data_to_cluster[, 2:ncol(data_to_cluster)])))))
+  var_order <- order.dendrogram(dendro_var)
+  
+  df[[var_name]] <- factor(df[[var_name]], 
+                           levels = colnames(data_to_cluster[2:ncol(data_to_cluster)][var_order]),
+                           ordered = TRUE)
+  df[["File"]] <- factor(df[["File"]],
+                         levels = data_to_cluster[["File"]][files_order],
+                         ordered = TRUE) 
+  df
+}
 
+#' @export
+get_presence_plot_data <- function(presence_table, systems = unique(adhesins_df[["System"]])) {
+  
+  all_genes <- unique(adhesins_df[["Gene"]])
   selected_genes <- unique(filter(adhesins_df, System %in% systems)[["Gene"]])
   
   plot_dat <- presence_table %>% 
@@ -28,26 +44,20 @@ get_data_for_plots <- function(presence_table, systems = unique(adhesins_df[["Sy
     filter(Gene %in% selected_genes)
   
   if(nrow(presence_table) > 1) {
-    dendro_files <- as.dendrogram(hclust(d = dist(x = as.matrix(presence_table[, 2:ncol(presence_table)]))))
-    files_order <- order.dendrogram(dendro_files)
-    dendro_genes <- as.dendrogram(hclust(d = dist(t(as.matrix(presence_table[, 2:ncol(presence_table)])))))
-    genes_order <- order.dendrogram(dendro_genes)
-    
-    plot_dat[["Gene"]] <- factor(plot_dat[["Gene"]], 
-                                 levels = colnames(presence_table[2:ncol(presence_table)][genes_order]),
-                                 ordered = TRUE)
-    plot_dat[["File"]] <- factor(plot_dat[["File"]],
-                                 levels = presence_table[["File"]][files_order],
-                                 ordered = TRUE) 
+    plot_dat <- cluster_data(plot_dat, presence_table, "Gene")
   }
   
   plot_dat[["Presence"]] <- factor(ifelse(plot_dat[["Presence"]] == 1, "yes", "no"), levels = c("yes", "no"))
   plot_dat
-  
 }
 
+
 #' @export
-get_presence_plot <- function(plot_dat, presence_col = "#e42b24", absence_col = "#85c1ff") {
+get_presence_plot <- function(presence_table, systems = unique(adhesins_df[["System"]]), show_dendrogram = FALSE,
+                              presence_col = "#e42b24", absence_col = "#85c1ff") {
+  
+  plot_dat <- get_presence_plot_data(presence_table, systems)
+  
   ggplot(plot_dat, aes(x = File, y = Gene, fill = Presence)) +
     geom_tile() +
     scale_fill_manual("Presence", values = c("yes" = presence_col, "no" = absence_col), drop = FALSE) +

@@ -67,9 +67,8 @@ shinyServer(function(input, output, session) {
 
     
     presence_plot_dat <- reactive({
-      #req(presence_tab)
       validate(need(presence_tab, "Please run BLAST to see the results."))
-        get_data_for_plots(presence_tab(), filters[["systems"]])
+        get_presence_plot_data(presence_tab(), filters[["systems"]])
     })
     
 
@@ -113,31 +112,37 @@ shinyServer(function(input, output, session) {
     
     
     all_genes_plot_dat <- reactive({
-      get_presence_table(blast_results(), add_missing = !input[["all_genes_hide_missing"]]) %>% 
-        get_data_for_plots(., filters[["systems"]])
+      get_presence_table(blast_results(), add_missing = !input[["all_genes_hide_missing"]],
+                         identity_threshold = filters[["thresh"]], evalue_treshold = filters[["evalue"]])
     })
     
   observe({
+    req(all_genes_plot_dat)
+    scaling_dat <- reactive({
+      get_presence_plot_data(all_genes_plot_dat(), systems = filters[["systems"]])
+    })
       output[["presence_plot"]] <- renderPlot({
-        req(all_genes_plot_dat)
      #   validate(need(is.null(presence_plot_dat), "Please run BLAST to see the results."))
           get_presence_plot(all_genes_plot_dat(),
+                            systems = filters[["systems"]],
                             presence_col = filters[["presence_col"]], 
                             absence_col = filters[["absence_col"]])
-      }, height = 300+10*length(unique(all_genes_plot_dat()[["Gene"]])), width = 100+10*length(unique(all_genes_plot_dat()[["File"]])))
+      }, height = 300+10*length(unique(scaling_dat()[["Gene"]])), width = 100+10*length(unique(scaling_dat()[["File"]])))
   })
 
   
-  plot_system_dat <- reactive({
-    req(presence_plot_dat)
-    df <- left_join(presence_plot_dat(), adhesins_df, by = "Gene") 
-    if(input[["systems_hide_missing"]] == TRUE) {
-      df <- filter(df, !(System %in% absent_systems()))
-    }
-    ungroup(df)
-  })
+
   
   observe({
+    plot_system_dat <- reactive({
+      #req(presence_plot_dat)
+      df <- left_join(presence_plot_dat(), adhesins_df, by = "Gene") 
+      if(input[["systems_hide_missing"]] == TRUE) {
+        df <- filter(df, !(System %in% absent_systems()))
+      }
+      ungroup(df)
+    })
+    
       output[["systems_plots"]] <- renderUI({
           nc <- reactive({ncol(plot_system_dat())})
           systems_plots_list <- lapply(1L:length(unique(plot_system_dat()[["System"]])), function(i) {
@@ -156,7 +161,7 @@ shinyServer(function(input, output, session) {
               nr <- reactive({length(unique(system_data()[["File"]]))})
               nc <- reactive({length(unique(system_data()[["Gene"]]))})
               output[[paste0("systems_plot", my_i)]] <- renderPlot({
-                get_system_plot(system_data(), systems()[my_i], 
+                get_system_plot(presence_tab(), systems()[my_i], 
                                 presence_col = filters[["presence_col"]], 
                                 absence_col = filters[["absence_col"]])
               }, width = 320+10*nc(), height = 60+15*nr())

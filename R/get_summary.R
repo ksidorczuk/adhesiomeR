@@ -22,24 +22,15 @@ get_summary_plot <- function(presence_table, hide_absent = FALSE, presence_col =
     pivot_longer(., 2:ncol(.), names_to = "System", values_to = "Percentage of present genes") 
   
   if(nrow(presence_table) > 1) {
-    dendro_files <- as.dendrogram(hclust(d = dist(x = as.matrix(summary_dat[, 2:ncol(summary_dat)]))))
-    files_order <- order.dendrogram(dendro_files)
-    dendro_systems <- as.dendrogram(hclust(d = dist(t(as.matrix(summary_dat[, 2:ncol(summary_dat)])))))
-    systems_order <- order.dendrogram(dendro_systems)
-    
-    plot_dat[["System"]] <- factor(plot_dat[["System"]], 
-                                 levels = colnames(summary_dat)[2:ncol(summary_dat)][systems_order],
-                                 ordered = TRUE)
-    plot_dat[["File"]] <- factor(plot_dat[["File"]],
-                                 levels = summary_dat[["File"]][files_order],
-                                 ordered = TRUE) 
+    plot_dat <- cluster_data(plot_dat, summary_dat, "System")
   }
-    ggplot(plot_dat, aes(x = System, y = File, fill = as.numeric(`Percentage of present genes`))) +
+  
+  ggplot(plot_dat, aes(x = System, y = File, fill = as.numeric(`Percentage of present genes`))) +
     geom_tile() +
     scale_fill_gradient(low = absence_col, high = presence_col, name = "Percentage of present genes") +
     scale_x_discrete(position = "top") +
     plot_theme()
-
+  
 }
 
 #' @export
