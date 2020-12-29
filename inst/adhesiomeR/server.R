@@ -26,7 +26,8 @@ shinyServer(function(input, output, session) {
                               evalue = 1e-50,
                               systems = "Type 1 Fimbriae",
                               presence_col = "#e00e00",
-                              absence_col = "#85c1ff")
+                              absence_col = "#85c1ff",
+                              old_files = NULL)
     
     
     observeEvent(input[["filtering_button"]], {
@@ -52,10 +53,39 @@ shinyServer(function(input, output, session) {
       data.frame(`Uploaded files` = input[["seq_file"]][["name"]], check.names = FALSE)
     })
     
+    
     blast_results <- eventReactive(input[["blast"]], {
       req(input[["seq_file"]])
-      run_blast(input[["seq_file"]], input[["n_threads"]], updateProgress)
-      
+      if(all(input[["seq_file"]][["name"]] %in% filters[["old_input"]][["name"]]) &
+         length(input[["seq_file"]][["name"]] == length(filters[["old_input"]][["name"]]))) {
+        showModal(modalDialog(
+          title = "You already have results for these files",
+          "Uploaded files did not change since the last BLAST analysis. If you wish to analyse more 
+          or different files, please be sure to upload them first.",
+          easyClose = TRUE,
+          footer = modalButton("OK")
+        ))
+      } 
+      req(!(all(input[["seq_file"]][["name"]] %in% filters[["old_input"]][["name"]])) &
+                      length(input[["seq_file"]][["name"]] != length(filters[["old_input"]][["name"]])))
+        showModal(modalDialog(
+          title = "Running BLAST...",
+          "Please be patient - the calculations may take a few minutes.
+        This window will disapear once calculations are completed.", 
+          footer = NULL))
+        # 
+        # progress <- shiny::Progress$new(min = 0, max = length(input[["seq_file"]][, 1]))
+        # progress$set(message = "Running BLAST", value = 0)
+        # on.exit(progress$close())
+        # 
+        # updateProgress <- function(value = NULL, detail = NULL) {
+        #   progress$set(value = value, detail = detail)
+        # }
+        
+        res <- run_blast(input[["seq_file"]], input[["n_threads"]], updateProgress)
+        removeModal()
+        filters[["old_input"]] <- input[["seq_file"]]
+        res
     })
 
 
@@ -116,11 +146,13 @@ shinyServer(function(input, output, session) {
                          identity_threshold = filters[["thresh"]], evalue_treshold = filters[["evalue"]])
     })
     
-  observe({
-    req(all_genes_plot_dat)
     scaling_dat <- reactive({
+      req(all_genes_plot_dat)
       get_presence_plot_data(all_genes_plot_dat(), systems = filters[["systems"]])
     })
+    
+  observe({
+    req(all_genes_plot_dat)
       output[["presence_plot"]] <- renderPlot({
      #   validate(need(is.null(presence_plot_dat), "Please run BLAST to see the results."))
           get_presence_plot(all_genes_plot_dat(),

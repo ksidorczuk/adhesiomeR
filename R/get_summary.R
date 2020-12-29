@@ -3,7 +3,7 @@ get_summary_table <- function(presence_table, hide_absent = FALSE) {
   res <- presence_table %>% 
     add_missing_genes() %>% 
     pivot_longer(., 2:ncol(.), names_to = "Gene", values_to = "Presence") %>% 
-    left_join(adhesins_df) %>% 
+    left_join(adhesins_df, by = "Gene") %>% 
     group_by(File, System) %>% 
     summarise(gene_percentage = round(sum(Presence)*100/n(), 2))
   

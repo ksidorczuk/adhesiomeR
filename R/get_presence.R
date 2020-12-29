@@ -4,7 +4,8 @@ get_presence_table <- function(blast_res, add_missing = TRUE, identity_threshold
     group_by(File, Subject) %>% 
     summarise(Presence = ifelse(any(`% identity` > identity_threshold & Evalue < evalue_treshold), 1, 0)) %>% 
     mutate(Gene = sapply(Subject, function(x) strsplit(x, "~")[[1]][2]),
-           System = sapply(Subject, function(x) strsplit(x, "~")[[1]][4]))
+           System = sapply(Subject, function(x) strsplit(x, "~")[[1]][4])) %>% 
+    filter(Presence == 1)
   pivoted_res <- res[, c("File", "Gene", "Presence")] %>% 
     pivot_wider(names_from = Gene, values_from = Presence, values_fill = 0)
   # Check for genes that were not found
@@ -13,7 +14,7 @@ get_presence_table <- function(blast_res, add_missing = TRUE, identity_threshold
       pivoted_res <- add_missing_genes(pivoted_res)
     }
   }
-  pivoted_res
+  ungroup(pivoted_res)
 }
 
 
@@ -48,12 +49,12 @@ get_presence_plot_data <- function(presence_table, systems = unique(adhesins_df[
   }
   
   plot_dat[["Presence"]] <- factor(ifelse(plot_dat[["Presence"]] == 1, "yes", "no"), levels = c("yes", "no"))
-  plot_dat
+  ungroup(plot_dat)
 }
 
 
 #' @export
-get_presence_plot <- function(presence_table, systems = unique(adhesins_df[["System"]]), show_dendrogram = FALSE,
+get_presence_plot <- function(presence_table, systems = unique(adhesins_df[["System"]]),
                               presence_col = "#e42b24", absence_col = "#85c1ff") {
   
   plot_dat <- get_presence_plot_data(presence_table, systems)

@@ -10,5 +10,9 @@ validate_input_file <- function(input_file) {
 #' @export
 add_missing_genes <- function(results) {
   missing <- unique(adhesins_df[["Gene"]])[which(!(unique(adhesins_df[["Gene"]]) %in% colnames(results)))]
-  cbind(results, setNames(lapply(missing, function(x) x = 0), missing))
+  if(length(missing) > 0) {
+    cbind(results, setNames(lapply(missing, function(x) x = 0), missing))
+  } else {
+    results
+  }
 }
