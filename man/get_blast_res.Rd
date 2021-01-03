@@ -4,12 +4,14 @@
 \alias{get_blast_res}
 \title{Get BLAST results for many files}
 \usage{
-get_blast_res(input_file_list, blast_dir = Sys.which("blastn"))
+get_blast_res(input_file_list, nt = 1, blast_dir = Sys.which("blastn"))
 }
 \arguments{
 \item{input_file_list}{A \code{list} of file names that will be used
 as input files for BLAST search. File have to contain nucleotide sequences
 in a FASTA format.}
+
+\item{nt}{number of threads used for running BLAST.}
 
 \item{blast_dir}{A path to the directory with BLAST executables. By default,
 it tries to find the proper executable by running system command \code{which}

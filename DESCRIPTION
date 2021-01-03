@@ -16,7 +16,10 @@ Encoding: UTF-8
 Depends:
     R (>= 3.5.0)
 Imports:
-    dplyr
+    dplyr,
+    doSNOW,
+    foreach,
+    pbapply
 Suggests:
 Repository: CRAN
 Language: en-US

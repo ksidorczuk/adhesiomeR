@@ -30,6 +30,8 @@ cat("## Analyzed input files\n\n")
 print(knitr::kable(data.frame(`File name` = input_files)))
 cat("\n\n")
 
+get_presence_plot(presence_tab())
+
 ```
 
 

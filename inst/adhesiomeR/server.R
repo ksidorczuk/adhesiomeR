@@ -14,7 +14,7 @@ library(rmarkdown)
 
 data(adhesins_df)
 
-source("utils.R")
+source("shiny-utils.R")
 
 options(shiny.maxRequestSize=10*1024^2)
 
