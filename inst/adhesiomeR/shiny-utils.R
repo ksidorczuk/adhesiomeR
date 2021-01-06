@@ -8,21 +8,22 @@ my_DT <- function(x, ...)
             style = "bootstrap")
 
 
-get_blast_res <- function(input_file, nt) {
-  validate_input_file(input_file)
-  input_seqs <- read_fasta(input_file)
-  input <- tempfile(tmpdir = getwd())
-  output <- tempfile(tmpdir = getwd())
-  blast_command <- paste0("blastn -db ../../db/adhesins -query ", input, " -out ", output, " -outfmt 6")
-  write_fasta(input_seqs, input)
-  system(blast_command)
-  
-  res <- read.delim(output, header = FALSE)
-  colnames(res) <- c("Query", "Subject", "% identity", "Alignment length", "Mismatches",
-                     "Gap opens", "Query start", "Query end", "Subject start", "Subject end", "Evalue", "Bit score")
-  file.remove(input, output)
-  res
-}
+# get_blast_res <- function(input_file, nt) {
+#   validate_input_file(input_file)
+#   input_seqs <- read_fasta(input_file)
+#   input <- tempfile(tmpdir = getwd())
+#   output <- tempfile(tmpdir = getwd())
+#   db_path <- paste0(normalizePath(system.file(package = "adhesiomeR")), "/db/adhesins")
+#   blast_command <- paste0("blastn -db ", db_path, " -query ", input, " -out ", output, " -outfmt 6")
+#   write_fasta(input_seqs, input)
+#   system(blast_command)
+#   
+#   res <- read.delim(output, header = FALSE)
+#   colnames(res) <- c("Query", "Subject", "% identity", "Alignment length", "Mismatches",
+#                      "Gap opens", "Query start", "Query end", "Subject start", "Subject end", "Evalue", "Bit score")
+#   file.remove(input, output)
+#   res
+# }
 
 
 run_blast <- function(input_files, nt, updateProgress = NULL) {
@@ -40,7 +41,8 @@ run_blast <- function(input_files, nt, updateProgress = NULL) {
     input_seqs <- read_fasta(input_files[[i, 4]])
     input <- tempfile(tmpdir = getwd())
     output <- tempfile(tmpdir = getwd())
-    blast_command <- paste0("blastn -db ../../db/adhesins -query ", input, " -out ", output, " -outfmt 6")
+    db_path <- paste0(normalizePath(system.file(package = "adhesiomeR")), "/db/adhesins")
+    blast_command <- paste0("blastn -db ", db_path, " -query ", input, " -out ", output, " -outfmt 6")
     write_fasta(input_seqs, input)
     system(blast_command)
     
