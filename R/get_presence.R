@@ -22,7 +22,7 @@
 get_presence_table <- function(blast_res, add_missing = TRUE, identity_threshold = 70, evalue_threshold = 1e-50) {
   res <- blast_res %>% 
     group_by(File, Subject) %>% 
-    summarise(Presence = ifelse(any(`% identity` > identity_threshold & Evalue < evalue_treshold), 1, 0)) %>% 
+    summarise(Presence = ifelse(any(`% identity` > identity_threshold & Evalue < evalue_threshold), 1, 0)) %>% 
     mutate(Gene = sapply(Subject, function(x) strsplit(x, "~")[[1]][2]),
            System = sapply(Subject, function(x) strsplit(x, "~")[[1]][4])) %>% 
     filter(Presence == 1)

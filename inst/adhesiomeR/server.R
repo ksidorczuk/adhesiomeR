@@ -92,13 +92,13 @@ shinyServer(function(input, output, session) {
     presence_tab <- reactive({
     #  validate(need(input[["blast"]], "Please run BLAST to see the results."))
         get_presence_table(blast_results(), 
-                           identity_threshold = filters[["thresh"]], evalue_treshold = filters[["evalue"]])
+                           identity_threshold = filters[["thresh"]], evalue_threshold = filters[["evalue"]])
     })
 
     
     presence_plot_dat <- reactive({
       validate(need(presence_tab, "Please run BLAST to see the results."))
-        get_presence_plot_data(presence_tab(), filters[["systems"]])
+        adhesiomeR:::get_presence_plot_data(presence_tab(), filters[["systems"]])
     })
     
 
@@ -137,18 +137,18 @@ shinyServer(function(input, output, session) {
   })
   
     output[["wordcloud"]] <- renderPlot({
-      get_word_cloud(get_count_table(presence_tab()))
+      adhesiomeR:::get_word_cloud(adhesiomeR:::get_count_table(presence_tab()))
     })
     
     
     all_genes_plot_dat <- reactive({
       get_presence_table(blast_results(), add_missing = !input[["all_genes_hide_missing"]],
-                         identity_threshold = filters[["thresh"]], evalue_treshold = filters[["evalue"]])
+                         identity_threshold = filters[["thresh"]], evalue_threshold = filters[["evalue"]])
     })
     
     scaling_dat <- reactive({
       req(all_genes_plot_dat)
-      get_presence_plot_data(all_genes_plot_dat(), systems = filters[["systems"]])
+      adhesiomeR:::get_presence_plot_data(all_genes_plot_dat(), systems = filters[["systems"]])
     })
     
   observe({

@@ -37,7 +37,7 @@ run_blast <- function(input_files, nt, updateProgress = NULL) {
     #   updateProgress(detail = text)
     # }
     # 
-    validate_input_file(input_files[[i, 4]])
+    adhesiomeR:::validate_input_file(input_files[[i, 4]])
     input_seqs <- read_fasta(input_files[[i, 4]])
     input <- tempfile(tmpdir = getwd())
     output <- tempfile(tmpdir = getwd())
