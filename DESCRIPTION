@@ -19,7 +19,10 @@ Imports:
     dplyr,
     doSNOW,
     foreach,
-    pbapply
+    pbapply,
+    ggplot2,
+    tidyr,
+    wordcloud
 Suggests:
 Repository: CRAN
 Language: en-US

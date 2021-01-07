@@ -1,5 +1,25 @@
+#' Get presence table
+#' 
+#' This function creates a presence/absence table of genes in analyzed genomes
+#' based on results of the BLAST search. Each row corresponds to one input file
+#' and each column to one gene. Presence of a given gene is indicated as a 1, 
+#' whereas absence as a 0. You can modify thresholds used to consider a gene
+#' as present using \code{identity_threshold} and \code{evalue_threshold} 
+#' arguments. By default, gene is considered to be present when it shares
+#' over 70% of identity with a subject sequence and has E-value lower than
+#' 1e-50. 
+#' @param blast_res blast results obtained with \code{\link{get_blast_res}}
+#' @param add_missing \code{logical} indicating if genes not found by BLAST 
+#' should be added. By default \code{TRUE}, meaning that all genes are shown 
+#' in the resulting table, even if they were not found in any genome. 
+#' @param identity_threshold \code{numeric} indicating the percent of identity
+#' used for labeling a gene as present or absent
+#' @param evalue_threshold \code{numeric} indicating the E-value threshold
+#' used for labeling a gene as present or absent
+#' @importFrom dplyr group_by summarise mutate filter %>% ungroup
+#' @importFrom tidyr pivot_wider
 #' @export
-get_presence_table <- function(blast_res, add_missing = TRUE, identity_threshold = 70, evalue_treshold = 1e-50) {
+get_presence_table <- function(blast_res, add_missing = TRUE, identity_threshold = 70, evalue_threshold = 1e-50) {
   res <- blast_res %>% 
     group_by(File, Subject) %>% 
     summarise(Presence = ifelse(any(`% identity` > identity_threshold & Evalue < evalue_treshold), 1, 0)) %>% 
@@ -18,7 +38,7 @@ get_presence_table <- function(blast_res, add_missing = TRUE, identity_threshold
 }
 
 
-#' @export
+#' @importFrom stats as.dendrogram hclust dist order.dendrogram
 cluster_data <- function(df, data_to_cluster, var_name) {
   dendro_files <- as.dendrogram(hclust(d = dist(x = as.matrix(data_to_cluster[, 2:ncol(data_to_cluster)]))))
   files_order <- order.dendrogram(dendro_files)
@@ -34,7 +54,9 @@ cluster_data <- function(df, data_to_cluster, var_name) {
   df
 }
 
-#' @export
+
+#' @importFrom dplyr filter ungroup
+#' @importFrom tidyr pivot_longer
 get_presence_plot_data <- function(presence_table, systems = unique(adhesins_df[["System"]])) {
   
   all_genes <- unique(adhesins_df[["Gene"]])
@@ -53,6 +75,19 @@ get_presence_plot_data <- function(presence_table, systems = unique(adhesins_df[
 }
 
 
+#' Get plot with gene presence/absence
+#' 
+#' This function generates a heatmap showing the presence or absence of each 
+#' gene in each of the analyzed files. 
+#' @param presence_table a data frame with gene presence/absence obtained 
+#' using \code{\link{get_presence_table}} function
+#' @param systems a character vector with names of the systems that should
+#' be shown on a heatmap. By default, all systems present in the database
+#' @param presence_col color of the tiles representing present genes. Must be
+#' specified as a hex color code
+#' @param absence_col color of the tiles representing absent genes. Must be
+#' specified as a hex color code
+#' @importFrom ggplot2 ggplot geom_tile scale_fill_manual scale_x_discrete theme
 #' @export
 get_presence_plot <- function(presence_table, systems = unique(adhesins_df[["System"]]),
                               presence_col = "#e42b24", absence_col = "#85c1ff") {

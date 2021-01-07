@@ -18,12 +18,11 @@
 #' is assigned to multiple systems, system names should be separated using 
 #' semicolons without spaces, e.g. \code{Adhesins~aggR~NC_019000.1:48472-49269~AA/I_Fimbriae;
 #' AA/II_Fimbriae;AA/III_Fimbriae}.
-#' 
+#' @importFrom dplyr mutate
 #' @export
 #' @examples 
 #' get_genes_in_systems_db(system.file("./data/Adhesins_sequences.txt", package = "adhesiomeR"))
 #' 
-#' @importFrom dplyr mutate %>% 
 get_genes_in_systems_db <- function(seq_file) {
   data_file <- readLines(seq_file)
   def_lines <- data_file[grepl(">", data_file)]
@@ -32,10 +31,11 @@ get_genes_in_systems_db <- function(seq_file) {
                    System = sapply(def_lines, function(x) strsplit(x, "~")[[1]][4], USE.NAMES = FALSE),
                    stringsAsFactors = FALSE)
   df[["System"]] <- gsub("^ ", "", df[["System"]])
-  lapply(unique_genes, function(ith_gene) {
+  do.call(rbind, lapply(unique_genes, function(ith_gene) {
     data.frame(Gene = ith_gene,
                System = strsplit(df[["System"]][which(df[["Gene"]] == ith_gene)], ";")[[1]],
                stringsAsFactors = FALSE) %>% 
       mutate(System = gsub("_", " ", System))
-  }) %>% do.call(rbind, .)
+  })
+  )
 }

@@ -1,3 +1,15 @@
+#' Get table with summarized system presence
+#' 
+#' This functions creates a table with an overview of systems presence
+#' in analyzed genomes. Each system is summarized as a percent of genes
+#' that were identified. 
+#' @param presence_table a data frame with gene presence/absence obtained 
+#' using \code{\link{get_presence_table}} function
+#' @param hide_absent \code{logical} indicating if columns representing 
+#' systems that were not found in any file should be displayed. By default
+#' \code{FALSE}
+#' @importFrom dplyr %>% left_join group_by summarise filter
+#' @importFrom tidyr pivot_longer pivot_wider
 #' @export
 get_summary_table <- function(presence_table, hide_absent = FALSE) {
   res <- presence_table %>% 
@@ -14,6 +26,21 @@ get_summary_table <- function(presence_table, hide_absent = FALSE) {
 }
 
 
+#' Get plot with summarized system presence
+#' 
+#' This function generates a heatmap showing the percent of genes found
+#' for each system in each analyzed file. 
+#' @param presence_table a data frame with gene presence/absence obtained 
+#' using \code{\link{get_presence_table}} function
+#' @param hide_absent \code{logical} indicating if columns representing 
+#' systems that were not found in any file should be displayed. By default
+#' \code{FALSE}
+#' @param presence_col color of the tiles representing present genes. Must be
+#' specified as a hex color code
+#' @param absence_col color of the tiles representing absent genes. Must be
+#' specified as a hex color code
+#' @importFrom tidyr pivot_longer
+#' @importFrom ggplot2 ggplot geom_tile scale_fill_gradient scale_x_discrete
 #' @export
 get_summary_plot <- function(presence_table, hide_absent = FALSE, presence_col = "#e42b24", absence_col = "#85c1ff") {
   summary_dat <- presence_table %>% 
@@ -33,7 +60,8 @@ get_summary_plot <- function(presence_table, hide_absent = FALSE, presence_col =
   
 }
 
-#' @export
+#' @importFrom tidyr pivot_longer
+#' @importFrom dplyr left_join group_by summarise
 get_count_table <- function(presence_table) {
   presence_table %>% 
     add_missing_genes() %>% 
@@ -43,7 +71,7 @@ get_count_table <- function(presence_table) {
     summarise(gene_count = sum(Presence))
 }
 
-#' @export
+#' @importFrom wordcloud wordcloud
 get_word_cloud <- function(count_table) {
   count_table[["System"]] <- gsub(" Adhesin| Adhesins| Fimbriae", "", count_table[["System"]])
   wordcloud(count_table[["System"]], count_table[["gene_count"]], 

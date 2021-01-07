@@ -18,7 +18,8 @@
 #' @importFrom pbapply pblapply
 #' @importFrom parallel makePSOCKcluster stopCluster
 #' @importFrom doSNOW registerDoSNOW
-#' @importFrom foreach foreach
+#' @importFrom foreach foreach %dopar%
+#' @importFrom utils setTxtProgressBar txtProgressBar
 #' @export
 get_blast_res <- function(input_file_list, nt = 1, blast_dir = Sys.which("blastn")) {
   parallel_cluster <- makePSOCKcluster(nt)
@@ -54,6 +55,8 @@ get_blast_res <- function(input_file_list, nt = 1, blast_dir = Sys.which("blastn
 #' bit score (for detailed information about those outputs, please see BLAST
 #' documentation), as well as name of a file that was used as an input.
 #' @seealso get_blast_res
+#' @importFrom dplyr last
+#' @importFrom utils read.delim
 #' @export
 do_blast_single <- function(input_file, blast_dir = Sys.which("blastn")) {
   validate_input_file(input_file)
