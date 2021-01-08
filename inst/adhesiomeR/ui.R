@@ -7,12 +7,16 @@ data(adhesins_df)
 
 shinyUI(navbarPage("AdhesiomeR",
                    tabPanel("Introduction",
-                            "some text about adhesins, our database, and why adhesiomeR is awesome"),
+                            sidebarPanel(width = 5,
+                                         includeMarkdown("intro.md")),
+                            mainPanel(width = 7,
+                                      "Table with adhesins in the database",
+                                      dataTableOutput("adhesins"))),
                    tabPanel("Input & settings",
                             sidebarPanel(width = 6,
                                          h5(tags$b("Step 1.")),
                                          fileInput("seq_file", 
-                                                   "Upload your genome file(s) in a FASTA format. You can process up to x files at once.",
+                                                   "Upload your genome file(s) in a FASTA format. You can process up to 100 files at once.",
                                                    multiple = TRUE
                                          ),
                                          h5(tags$b("Select number of threads used when running BLAST:")),
