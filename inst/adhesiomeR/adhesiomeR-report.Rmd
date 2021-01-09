@@ -24,13 +24,13 @@ img {
 
 ```{r, results='asis', echo=FALSE}
 
+
 cat(paste0("**Date**: ", Sys.time()), "\n\n")
 
 cat("## Analyzed input files\n\n")
-print(knitr::kable(data.frame(`File name` = input_files)))
+print(knitr::kable(data.frame(`File name` = genome_files)))
 cat("\n\n")
 
-get_presence_plot(presence_tab())
 
 ```
 

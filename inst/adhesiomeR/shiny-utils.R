@@ -58,11 +58,3 @@ run_blast <- function(input_files, nt, updateProgress = NULL) {
   res
 }
 
-
-plot_theme <- function() {
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 90),
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        legend.position = "bottom")
-}

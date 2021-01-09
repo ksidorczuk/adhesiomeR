@@ -15,3 +15,11 @@ add_missing_genes <- function(results) {
     results
   }
 }
+
+plot_theme <- function() {
+  theme_bw() +
+    theme(axis.text.x = element_text(angle = 90),
+          axis.title.x = element_blank(),
+          axis.title.y = element_blank(),
+          legend.position = "bottom")
+}
