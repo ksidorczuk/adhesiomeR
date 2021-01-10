@@ -49,7 +49,7 @@ shinyServer(function(input, output, session) {
   
   
   output[["adhesins"]] <- renderDataTable({
-    my_DT(adhesins_df)
+    my_DT(adhesiomeR::adhesins_df)
   })
   
   output[["input_tab"]] <- renderTable({
@@ -209,8 +209,10 @@ shinyServer(function(input, output, session) {
   
   
   output[["download"]] <- downloadHandler(
-    filename = "adhesiomeR_results.html",
+    validate(need(blast_results, "b")),
+    filename = "adhesiomeR-results.html",
     content <- function(file) {
+      
       src <- normalizePath("adhesiomeR-report.Rmd")
       
       input_files <- input[["seq_file"]][["name"]]
@@ -218,9 +220,19 @@ shinyServer(function(input, output, session) {
       # permission to the current working directory
       owd <- setwd(tempdir())
       on.exit(setwd(owd))
+      generate_report_files(presence_tab(), elements = input[["elements"]], outdir = owd,
+                            hide_absent_genes = input[["report_hide_genes"]], hide_absent_systems = input[["report_hide_systems"]],
+                            presence_col = filters[["presence_col"]], absence_col = filters[["absence_col"]])
       file.copy(src, "adhesiomeR-report.Rmd", overwrite = TRUE)
-      out <- rmarkdown::render("adhesiomeR-report.Rmd", output_format = "html_document", file, quiet = FALSE,
-                               input_files)
+      genome_files <- input[["seq_file"]][["name"]]
+      outdir <- owd
+      elements <- input[["elements"]]
+      out <- rmarkdown::render("adhesiomeR-report.Rmd", output_format = "html_document", 
+                        file, quiet = FALSE,
+                        params = list(genome_files, outdir, elements))
+      
+      fl <- list.files(src, full.names = TRUE)
+      invisible(file.remove(fl[!grepl("adhesiomeR-results.html", fl)]))
       file.rename(out, file)
     }
   )

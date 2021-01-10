@@ -31,16 +31,12 @@ md_DT <- function(df) {
 
 cat(paste0("\n\n**Date**: ", Sys.time()), "\n\n")
 
-cat("## Analyzed input files\n\n")
+cat("## Analysed input files\n\n")
 print(knitr::kable(data.frame(`File name` = genome_files, check.names = FALSE)))
 cat("\n\n")
 
-if(any(c("summary_table", "summary_plot", "count_table") %in% elements)) {
-  cat("## Analysis on system level\n\n")
-}
-
 if(any(c("summary_table", "summary_plot") %in% elements)) {
-  cat("### Percent of found genes\n\n")
+  cat("## Analysis on system level\n\n### Percent of found genes\n\n")
 }
 
 if("summary_table" %in% elements) {
@@ -53,14 +49,8 @@ if("summary_plot" %in% elements) {
   cat("\n\n")
   st <- read.csv(paste0(outdir, "/summary_table.csv"))
   cat(paste0("<center>\n\n![](", outdir, "/summary_plot.png){width='", 300+8*ncol(st),"px'}\n</center>"))
-  #knitr::include_graphics(paste0(outdir, "/summary_plot.png"))
 }
 
-if("count_table" %in% elements) {
-  cat("\n\n### Number of found genes\n\n")
-  count_tab <- read.csv(paste0(outdir, "/count_table.csv"), check.names = FALSE)
-  md_DT(count_tab)
-}
 ```
 
 ```{r, results='asis', echo=FALSE, out.height=1800}
@@ -78,7 +68,6 @@ if("presence_plot" %in% elements) {
   cat("\n\n")
   pt <- read.csv(paste0(outdir, "/presence_table.csv"))
   cat(paste0("<center>\n\n![](", outdir, "/presence_plot.png){height='", 200+5*ncol(pt),"px'}</center>"))
-  #knitr::include_graphics(paste0(outdir, "/presence_plot.png"))
 }
 
 ```

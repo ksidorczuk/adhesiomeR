@@ -1,19 +1,16 @@
-generate_report_files <- function(presence_table, elements = c("summary_table", "count_table", "summary_plot", 
+#' Generate files with the results
+#' 
+#' @importFrom ggplot2 ggsave theme
+#' @importFrom slam col_sums
+#' @export
+generate_report_files <- function(presence_table, elements = c("summary_table", "summary_plot", 
                                                                "presence_table", "presence_plot"), 
                                   outdir = ".", hide_absent_genes = FALSE, hide_absent_systems = FALSE, 
                                   presence_col = "#e42b24", absence_col = "#85c1ff") {
-
+  
   if("summary_table" %in% elements) {
     summary_table <- get_summary_table(presence_table, hide_absent = hide_absent_systems)
     write.csv(summary_table, paste0(outdir, "/summary_table.csv"), row.names = FALSE)
-  }
-  
-  if("count_table" %in% elements) {
-    count_table <- adhesiomeR:::get_count_table(presence_table)
-    if(hide_absent_systems == TRUE) {
-      count_table <- filter(count_table, gene_count > 0)
-    }
-    write.csv(count_table, paste0(outdir, "/count_table.csv"), row.names = FALSE)
   }
   
   if("presence_table" %in% elements) {
@@ -46,10 +43,14 @@ generate_report_files <- function(presence_table, elements = c("summary_table", 
   }
 }
 
-
-generate_report <- function(presence_table, elements = c("summary_table", "count_table", "summary_plot", 
+#' Generate a HTML report with the results
+#' 
+#' @importFrom rmarkdown render
+#' @importFrom DT datatable
+#' @importFrom pander pander
+generate_report <- function(presence_table, elements = c("summary_table", "summary_plot", 
                                                          "presence_table", "presence_plot"),
-                            outdir = NULL, keep_intermediate_files = TRUE, hide_absent_genes = FALSE,
+                            outdir = NULL, remove_intermediate_files = FALSE, hide_absent_genes = FALSE,
                             hide_absent_systems = FALSE, presence_col = "#e42b24", absence_col = "#85c1ff") {
   
   # Create output directory for a report
@@ -65,7 +66,7 @@ generate_report <- function(presence_table, elements = c("summary_table", "count
   genome_files <- presence_table[["File"]]
   
   # Generate the files specified by the 'elements' argument
-  generate_report_files(presence_table, elements = c("summary_table", "count_table", "summary_plot", 
+  generate_report_files(presence_table, elements = c("summary_table", "summary_plot", 
                                                      "presence_table", "presence_plot"), 
                         outdir, hide_absent_genes, hide_absent_systems,
                         presence_col, absence_col)
@@ -75,5 +76,10 @@ generate_report <- function(presence_table, elements = c("summary_table", "count
   rmarkdown::render(report_template, output_format = "html_document", 
                     output_dir = paste0(outdir), quiet = FALSE, "adhesiomeR-results.html",
                     params = list(genome_files, outdir, elements))
+  
+  if(remove_intermediate_files == TRUE) {
+    fl <- list.files(outdir, full.names = TRUE)
+    invisible(file.remove(fl[!grepl("adhesiomeR-results.html", fl)]))
+  }
   
 }
