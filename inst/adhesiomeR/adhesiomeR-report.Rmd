@@ -24,15 +24,15 @@ img {
 ```{r, results='asis', echo=FALSE, out.width = 900}
 
 md_DT <- function(df) {
-  datatable(df, extensions = 'FixedColumns', filter = "top", rownames = FALSE, style = "bootstrap",
+  DT::datatable(df, extensions = 'FixedColumns', filter = "top", rownames = FALSE, style = "bootstrap",
             options = list(dom = 't', scrollX = TRUE, scrollCollapse = TRUE,
-                           scrollY = 500))
+                           scrollY = "700px", paging = FALSE, fixedColumns = list(leftColumns = 1)))
 }
 
 cat(paste0("\n\n**Date**: ", Sys.time()), "\n\n")
 
 cat("## Analysed input files\n\n")
-print(knitr::kable(data.frame(`File name` = genome_files, check.names = FALSE)))
+md_DT(data.frame(`File name` = genome_files, check.names = FALSE))
 cat("\n\n")
 
 if(any(c("summary_table", "summary_plot") %in% elements)) {
@@ -78,7 +78,7 @@ if("presence_plot" %in% elements) {
 This analysis was provided by [**adhesiomeR**](https://github.com/ksidorczuk/adhesiomeR)
 
 ```{r, echo=FALSE}
-pander(sessionInfo())
+pander::pander(sessionInfo())
 ```
 
 

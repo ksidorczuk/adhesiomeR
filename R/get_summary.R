@@ -8,7 +8,7 @@
 #' @param hide_absent \code{logical} indicating if columns representing 
 #' systems that were not found in any file should be displayed. By default
 #' \code{FALSE}
-#' @importFrom dplyr %>% left_join group_by summarise filter
+#' @importFrom dplyr %>% left_join group_by summarise filter n
 #' @importFrom tidyr pivot_longer pivot_wider
 #' @export
 get_summary_table <- function(presence_table, hide_absent = FALSE) {
@@ -40,7 +40,7 @@ get_summary_table <- function(presence_table, hide_absent = FALSE) {
 #' @param absence_col color of the tiles representing absent genes. Must be
 #' specified as a hex color code
 #' @importFrom tidyr pivot_longer
-#' @importFrom ggplot2 ggplot geom_tile scale_fill_gradient scale_x_discrete
+#' @importFrom ggplot2 ggplot geom_tile scale_fill_gradient scale_x_discrete aes
 #' @export
 get_summary_plot <- function(presence_table, hide_absent = FALSE, presence_col = "#e42b24", absence_col = "#85c1ff") {
   summary_dat <- presence_table %>% 

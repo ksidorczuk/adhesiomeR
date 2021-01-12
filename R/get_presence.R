@@ -87,7 +87,7 @@ get_presence_plot_data <- function(presence_table, systems = unique(adhesins_df[
 #' specified as a hex color code
 #' @param absence_col color of the tiles representing absent genes. Must be
 #' specified as a hex color code
-#' @importFrom ggplot2 ggplot geom_tile scale_fill_manual scale_x_discrete theme
+#' @importFrom ggplot2 ggplot geom_tile scale_fill_manual scale_x_discrete theme aes
 #' @export
 get_presence_plot <- function(presence_table, systems = unique(adhesins_df[["System"]]),
                               presence_col = "#e42b24", absence_col = "#85c1ff") {

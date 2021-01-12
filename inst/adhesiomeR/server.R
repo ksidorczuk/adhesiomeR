@@ -220,9 +220,9 @@ shinyServer(function(input, output, session) {
       # permission to the current working directory
       owd <- setwd(tempdir())
       on.exit(setwd(owd))
-      generate_report_files(presence_tab(), elements = input[["elements"]], outdir = owd,
-                            hide_absent_genes = input[["report_hide_genes"]], hide_absent_systems = input[["report_hide_systems"]],
-                            presence_col = filters[["presence_col"]], absence_col = filters[["absence_col"]])
+      adhesiomeR:::generate_report_files(presence_tab(), elements = input[["elements"]], outdir = owd,
+                                         hide_absent_genes = input[["report_hide_genes"]], hide_absent_systems = input[["report_hide_systems"]],
+                                         presence_col = filters[["presence_col"]], absence_col = filters[["absence_col"]])
       file.copy(src, "adhesiomeR-report.Rmd", overwrite = TRUE)
       genome_files <- input[["seq_file"]][["name"]]
       outdir <- owd
