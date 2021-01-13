@@ -209,7 +209,6 @@ shinyServer(function(input, output, session) {
   
   
   output[["download"]] <- downloadHandler(
-    validate(need(blast_results, "b")),
     filename = "adhesiomeR-results.html",
     content <- function(file) {
       
@@ -220,7 +219,7 @@ shinyServer(function(input, output, session) {
       # permission to the current working directory
       owd <- setwd(tempdir())
       on.exit(setwd(owd))
-      adhesiomeR:::generate_report_files(presence_tab(), elements = input[["elements"]], outdir = owd,
+      adhesiomeR:::generate_report_files(presence_table = presence_tab(), elements = input[["elements"]], outdir = owd,
                                          hide_absent_genes = input[["report_hide_genes"]], hide_absent_systems = input[["report_hide_systems"]],
                                          presence_col = filters[["presence_col"]], absence_col = filters[["absence_col"]])
       file.copy(src, "adhesiomeR-report.Rmd", overwrite = TRUE)
@@ -228,7 +227,7 @@ shinyServer(function(input, output, session) {
       outdir <- owd
       elements <- input[["elements"]]
       out <- rmarkdown::render("adhesiomeR-report.Rmd", output_format = "html_document", 
-                        file, quiet = FALSE,
+                        file, quiet = TRUE,
                         params = list(genome_files, outdir, elements))
       
       fl <- list.files(src, full.names = TRUE)
