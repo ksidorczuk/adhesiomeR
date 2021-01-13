@@ -230,8 +230,9 @@ shinyServer(function(input, output, session) {
                         file, quiet = TRUE,
                         params = list(genome_files, outdir, elements))
       
-      fl <- list.files(src, full.names = TRUE)
-      invisible(file.remove(fl[!grepl("adhesiomeR-results.html", fl)]))
+      fl <- list.files(outdir, full.names = TRUE)
+      sapply(c("summary_table.csv", "summary_plot.png", "presence_table.csv", "presence_plot.png"), function(i) 
+        invisible(file.remove(fl[grepl(i, fl)])))
       file.rename(out, file)
     }
   )
