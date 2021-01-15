@@ -71,10 +71,10 @@ get_count_table <- function(presence_table) {
     summarise(gene_count = sum(Presence))
 }
 
-#' @importFrom wordcloud wordcloud
-get_word_cloud <- function(count_table) {
-  count_table[["System"]] <- gsub(" Adhesin| Adhesins| Fimbriae", "", count_table[["System"]])
-  wordcloud(count_table[["System"]], count_table[["gene_count"]], 
-            colors = c("blue", "green", "red", "orange", "purple"),
-            scale = c(3, 0.5), rot.per = 0.3)
-}
+
+# get_word_cloud <- function(count_table) {
+#   count_table[["System"]] <- gsub(" Adhesin| Adhesins| Fimbriae", "", count_table[["System"]])
+#   wordcloud(count_table[["System"]], count_table[["gene_count"]], 
+#             colors = c("blue", "green", "red", "orange", "purple"),
+#             scale = c(3, 0.5), rot.per = 0.3)
+# }

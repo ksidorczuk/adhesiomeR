@@ -22,7 +22,7 @@ Imports:
     pbapply,
     ggplot2,
     tidyr,
-    wordcloud
+    rmarkdown
 Suggests:
 Repository: CRAN
 Language: en-US

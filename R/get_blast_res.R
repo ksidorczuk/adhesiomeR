@@ -5,7 +5,7 @@
 #' as input files for BLAST search. File have to contain nucleotide sequences
 #' in a FASTA format. 
 #' @param nt number of threads used for running BLAST. Default is one. The 
-#' maximum number of threads is determined by \code{\link{parallel::detectCores}}.
+#' maximum number of threads is determined by \code{\link[parallel]{detectCores}}.
 #' @param blast_dir A path to the directory with BLAST executables. By default,
 #' it tries to find the proper executable by running system command \code{which}
 #' (except on Windows). If the \code{blastn} executable is not found by default,
@@ -17,18 +17,18 @@
 #' documentation), as well as name of a file that was used as an input.
 #' @seealso do_blast_single
 #' @importFrom pbapply pblapply
-#' @importFrom parallel makePSOCKcluster stopCluster
+#' @importFrom parallel makePSOCKcluster stopCluster detectCores
 #' @importFrom doSNOW registerDoSNOW
 #' @importFrom foreach foreach %dopar%
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @importFrom dplyr mutate
 #' @export
 get_blast_res <- function(input_file_list, nt = 1, blast_dir = Sys.which("blastn")) {
-  max_nt <- parallel::detectCores(logical = FALSE)
+  max_nt <- detectCores(logical = FALSE)
   if(nt > max_nt) {
-    stop(paste0("The number of threads you specified is too large. The maximum number of threads determined by parallel::detectCores function is: ", parallel::detectCores(logical = FALSE), ". 
-  Please select a value between 1 and ", parallel::detectCores(logical = FALSE), "."))
-  } else if (!(nt %in% 1L:parallel::detectCores(logical = FALSE)))  {
+    stop(paste0("The number of threads you specified is too large. The maximum number of threads determined by parallel::detectCores function is: ", detectCores(logical = FALSE), ". 
+  Please select a value between 1 and ", detectCores(logical = FALSE), "."))
+  } else if (!(nt %in% 1L:detectCores(logical = FALSE)))  {
     stop("The number of threads is incorrect. Please make sure that you entered a valid number.")
   }
   
