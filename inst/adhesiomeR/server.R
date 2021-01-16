@@ -29,6 +29,32 @@ shinyServer(function(input, output, session) {
                             absence_col = "#85c1ff",
                             old_files = NULL)
   
+  hide_tabs <- eventReactive(input[["blast"]], {
+    if(input[["blast"]] == 0) {
+      return(0)
+    } else {
+      return(1)
+    }
+  }, ignoreNULL = FALSE)
+
+  observe({
+    if(hide_tabs() == 0) {
+    hideTab("adhesiomer", "blast_res")
+    hideTab("adhesiomer", "summary_plot")
+    hideTab("adhesiomer", "all_genes")
+    hideTab("adhesiomer", "systems")
+    hideTab("adhesiomer", "summary_plot")
+    hideTab("adhesiomer", "report")
+    } else {
+      showTab("adhesiomer", "blast_res")
+      showTab("adhesiomer", "summary_plot")
+      showTab("adhesiomer", "all_genes")
+      showTab("adhesiomer", "systems")
+      showTab("adhesiomer", "summary_plot")
+      showTab("adhesiomer", "report")
+    }
+  })
+  
   
   observeEvent(input[["filtering_button"]], {
     if(length(input[["systems"]]) < 1) {
@@ -141,10 +167,7 @@ shinyServer(function(input, output, session) {
     summary_tab <- get_summary_table(presence_tab())
     names(summary_tab[, 2:ncol(summary_tab)][which(colSums(summary_tab[, 2:ncol(summary_tab)]) == 0)])
   })
-  
-  output[["wordcloud"]] <- renderPlot({
-    adhesiomeR:::get_word_cloud(adhesiomeR:::get_count_table(presence_tab()))
-  })
+
   
   
   all_genes_plot_dat <- reactive({

@@ -45,6 +45,11 @@ generate_report <- function(presence_table, elements = c("summary_table", "summa
                             outdir = NULL, remove_intermediate_files = FALSE, hide_absent_genes = FALSE,
                             hide_absent_systems = FALSE, presence_col = "#e42b24", absence_col = "#85c1ff") {
   
+  if(is.null(elements) | !all(elements %in% c("summary_table", "summary_plot", 
+                                              "presence_table", "presence_plot"))) {
+    stop("Incorrect elements selected. The 'elements' argument may contain only the following items: 'summary_table', 'summary_plot', 'presence_table', 'presence_plot'. Please make sure that you use at least one of these items.")
+  }
+  
   # Create output directory for a report
   if(is.null(outdir)) {
     outdir <- paste0(getwd(), "/adhesiomeR-report-", Sys.Date())
@@ -76,5 +81,4 @@ generate_report <- function(presence_table, elements = c("summary_table", "summa
     fl <- list.files(outdir, full.names = TRUE)
     invisible(file.remove(fl[!grepl("adhesiomeR-results.html", fl)]))
   }
-  
 }
