@@ -23,7 +23,7 @@
 #' specified as a hex color code
 #' @param absence_col color of the tiles representing absent genes. Must be
 #' specified as a hex color code
-#' 
+#' @return No return value, called for its side effects.
 #' @details This function uses object obtained by \code{get_presence_table}
 #' function to create files with the results, i.e., plots and/or tables, 
 #' depending on the selected elements. These files are placed in a newly 

@@ -43,6 +43,9 @@ specified as a hex color code}
 \item{absence_col}{color of the tiles representing absent genes. Must be
 specified as a hex color code}
 }
+\value{
+No return value, called for its side effects.
+}
 \description{
 This function generates a HTML report with the results of a performed
 analysis, using an object obtained by \code{\link{get_presence_table}}

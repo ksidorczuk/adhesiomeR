@@ -27,5 +27,5 @@ specified as a hex color code}
 }
 \description{
 This function generates a heatmap showing the percent of genes found
-for each system in each analyzed file.
+for each system in each analysed file.
 }

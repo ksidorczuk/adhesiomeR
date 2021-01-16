@@ -14,8 +14,13 @@ using \code{\link{get_presence_table}} function}
 systems that were not found in any file should be displayed. By default
 \code{FALSE}}
 }
+\value{
+a data frame with systems presence indicated by a percentage of
+found genes. First column contains names of the input files and the following
+correspond to analysed systems.
+}
 \description{
 This functions creates a table with an overview of systems presence
-in analyzed genomes. Each system is summarized as a percent of genes
+in analysed genomes. Each system is summarized as a percent of genes
 that were identified.
 }

@@ -1,6 +1,6 @@
 #' Get presence table
 #' 
-#' This function creates a presence/absence table of genes in analyzed genomes
+#' This function creates a presence/absence table of genes in analysed genomes
 #' based on results of the BLAST search. Each row corresponds to one input file
 #' and each column to one gene. Presence of a given gene is indicated as a 1, 
 #' whereas absence as a 0. You can modify thresholds used to consider a gene
@@ -16,6 +16,9 @@
 #' used for labeling a gene as present or absent
 #' @param evalue_threshold \code{numeric} indicating the E-value threshold
 #' used for labeling a gene as present or absent
+#' @return a data frame of gene presence/absence. The first column contains
+#' the names of input files and the following correspond to analysed genes.
+#' Presence of a gene is indicated by 1, whereas absence by 0. 
 #' @importFrom dplyr group_by summarise mutate filter %>% ungroup
 #' @importFrom tidyr pivot_wider
 #' @export
@@ -78,7 +81,7 @@ get_presence_plot_data <- function(presence_table, systems = unique(adhesins_df[
 #' Get plot with gene presence/absence
 #' 
 #' This function generates a heatmap showing the presence or absence of each 
-#' gene in each of the analyzed files. 
+#' gene in each of the analysed files. 
 #' @param presence_table a data frame with gene presence/absence obtained 
 #' using \code{\link{get_presence_table}} function
 #' @param systems a character vector with names of the systems that should

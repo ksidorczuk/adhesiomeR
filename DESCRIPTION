@@ -22,7 +22,8 @@ Imports:
     pbapply,
     ggplot2,
     tidyr,
-    rmarkdown
+    rmarkdown,
+    shiny
 Suggests:
 Repository: CRAN
 Language: en-US

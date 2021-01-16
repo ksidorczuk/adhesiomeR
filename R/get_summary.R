@@ -1,13 +1,16 @@
 #' Get table with summarized system presence
 #' 
 #' This functions creates a table with an overview of systems presence
-#' in analyzed genomes. Each system is summarized as a percent of genes
+#' in analysed genomes. Each system is summarized as a percent of genes
 #' that were identified. 
 #' @param presence_table a data frame with gene presence/absence obtained 
 #' using \code{\link{get_presence_table}} function
 #' @param hide_absent \code{logical} indicating if columns representing 
 #' systems that were not found in any file should be displayed. By default
 #' \code{FALSE}
+#' @return a data frame with systems presence indicated by a percentage of
+#' found genes. First column contains names of the input files and the following
+#' correspond to analysed systems. 
 #' @importFrom dplyr %>% left_join group_by summarise filter n
 #' @importFrom tidyr pivot_longer pivot_wider
 #' @export
@@ -29,7 +32,7 @@ get_summary_table <- function(presence_table, hide_absent = FALSE) {
 #' Get plot with summarized system presence
 #' 
 #' This function generates a heatmap showing the percent of genes found
-#' for each system in each analyzed file. 
+#' for each system in each analysed file. 
 #' @param presence_table a data frame with gene presence/absence obtained 
 #' using \code{\link{get_presence_table}} function
 #' @param hide_absent \code{logical} indicating if columns representing 

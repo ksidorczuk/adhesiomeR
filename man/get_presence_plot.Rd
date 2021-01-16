@@ -26,5 +26,5 @@ specified as a hex color code}
 }
 \description{
 This function generates a heatmap showing the presence or absence of each 
-gene in each of the analyzed files.
+gene in each of the analysed files.
 }
