@@ -52,7 +52,8 @@ run_blast <- function(input_files, nt, updateProgress = NULL) {
 
     file.remove(input, output)
    # updateProgress(value = 1)
-    mutate(res, File = input_files[[i, 1]])
+    mutate(res, File = input_files[[i, 1]],
+           Subject = sapply(Subject, function(i) strsplit(i, "~")[[1]][2]))
   } 
   stopCluster(parallel_cluster)
   res

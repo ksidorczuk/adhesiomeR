@@ -26,8 +26,7 @@ get_presence_table <- function(blast_res, add_missing = TRUE, identity_threshold
   res <- blast_res %>% 
     group_by(File, Subject) %>% 
     summarise(Presence = ifelse(any(`% identity` > identity_threshold & Evalue < evalue_threshold), 1, 0)) %>% 
-    mutate(Gene = sapply(Subject, function(x) strsplit(x, "~")[[1]][2]),
-           System = sapply(Subject, function(x) strsplit(x, "~")[[1]][4])) %>% 
+    mutate(Gene = Subject) %>% 
     filter(Presence == 1)
   pivoted_res <- res[, c("File", "Gene", "Presence")] %>% 
     pivot_wider(names_from = Gene, values_from = Presence, values_fill = 0)

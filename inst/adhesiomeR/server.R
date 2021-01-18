@@ -24,7 +24,7 @@ shinyServer(function(input, output, session) {
   
   filters <- reactiveValues(thresh = 50,
                             evalue = 1e-50,
-                            systems = "Type 1 Fimbriae",
+                            systems = unique(adhesins_df[["System"]]),
                             presence_col = "#e00e00",
                             absence_col = "#85c1ff",
                             old_files = NULL)
@@ -78,9 +78,9 @@ shinyServer(function(input, output, session) {
     my_DT(adhesiomeR::adhesins_df)
   })
   
-  output[["input_tab"]] <- renderTable({
+  output[["input_tab"]] <- renderDataTable({
     validate(need(input[["seq_file"]], "Please upload your files in a FASTA format."))
-    data.frame(`Uploaded files` = input[["seq_file"]][["name"]], check.names = FALSE)
+    my_DT(data.frame(`Uploaded files` = input[["seq_file"]][["name"]], check.names = FALSE))
   })
   
   
@@ -136,20 +136,19 @@ shinyServer(function(input, output, session) {
   
   output[["blast_res"]] <- renderDataTable({
     #validate(need(nrow(blast_results() > 0), "Please run BLAST to see the results."))
-    blast_results() %>% 
-      mutate(Subject = sapply(Subject, function(i) strsplit(i, "~")[[1]][2])) %>% 
-      my_DT()
+    my_DT(blast_results())
   })
   
   
-  # output[["presence_table"]] <- renderDataTable({
-  #     my_DT(presence_tab())
-  # })
+  output[["presence_table"]] <- renderDataTable({
+      my_DT(presence_tab())
+  })
   
-  # output[["systems_summary_table"]] <- renderDataTable({
-  #   get_summary_table(presence_tab()) %>% 
-  #     my_DT()
-  # })
+  output[["systems_summary_table"]] <- renderDataTable({
+    get_summary_table(presence_tab()) %>%
+      my_DT()
+  })
+  
   summary_table <- reactive({
     get_summary_table(presence_tab(), hide_absent = input[["systems_summary_hide_missing"]])
   })
@@ -205,9 +204,9 @@ shinyServer(function(input, output, session) {
     })
     
     output[["systems_plots"]] <- renderUI({
-      nc <- reactive({ncol(plot_system_dat())})
+      nc <- reactive({150 + 15*(length(unique(plot_system_dat()[["File"]])))})
       systems_plots_list <- lapply(1L:length(unique(plot_system_dat()[["System"]])), function(i) {
-        list(plotOutput(paste0("systems_plot", i), width = 150+15*nc()))
+        list(plotOutput(paste0("systems_plot", i), height = nc()))
       })
     })
     
@@ -225,7 +224,7 @@ shinyServer(function(input, output, session) {
           get_system_plot(presence_tab(), systems()[my_i], 
                           presence_col = filters[["presence_col"]], 
                           absence_col = filters[["absence_col"]])
-        }, width = 320+10*nc(), height = 60+15*nr())
+        }, width = 350+10*nc(), height = 60+15*nr())
       })
     }
   })
