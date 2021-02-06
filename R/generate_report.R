@@ -39,6 +39,7 @@
 #'   \item{presence_table}{ table with gene presence/absence}
 #'   \item{presence_plot}{ plot with gene presence/absence.}}
 #' @importFrom rmarkdown render
+#' @importFrom utils write.csv
 #' @export
 generate_report <- function(presence_table, elements = c("summary_table", "summary_plot", 
                                                          "presence_table", "presence_plot"),

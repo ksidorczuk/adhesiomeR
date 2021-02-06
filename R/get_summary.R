@@ -11,16 +11,17 @@
 #' @return a data frame with systems presence indicated by a percentage of
 #' found genes. First column contains names of the input files and the following
 #' correspond to analysed systems. 
-#' @importFrom dplyr %>% left_join group_by summarise filter n
+#' @importFrom dplyr left_join group_by summarise filter n
 #' @importFrom tidyr pivot_longer pivot_wider
 #' @export
 get_summary_table <- function(presence_table, hide_absent = FALSE) {
-  res <- presence_table %>% 
-    add_missing_genes() %>% 
-    pivot_longer(., 2:ncol(.), names_to = "Gene", values_to = "Presence") %>% 
-    left_join(adhesins_df, by = "Gene") %>% 
-    group_by(File, System) %>% 
-    summarise(gene_percentage = round(sum(Presence)*100/n(), 2))
+  res <- summarise(
+    group_by(
+      left_join(
+        pivot_longer(add_missing_genes(presence_table), 2:ncol(add_missing_genes(presence_table)), names_to = "Gene", values_to = "Presence"), 
+        adhesins_df, by = "Gene"),
+      File, System),
+    gene_percentage = round(sum(Presence)*100/n(), 2))
   
   if(hide_absent == TRUE) {
     res <- filter(res, gene_percentage > 0)
@@ -46,10 +47,8 @@ get_summary_table <- function(presence_table, hide_absent = FALSE) {
 #' @importFrom ggplot2 ggplot geom_tile scale_fill_gradient scale_x_discrete aes
 #' @export
 get_summary_plot <- function(presence_table, hide_absent = FALSE, presence_col = "#e42b24", absence_col = "#85c1ff") {
-  summary_dat <- presence_table %>% 
-    get_summary_table(., hide_absent) 
-  plot_dat <- summary_dat %>% 
-    pivot_longer(., 2:ncol(.), names_to = "System", values_to = "Percentage of present genes") 
+  summary_dat <- get_summary_table(presence_table, hide_absent) 
+  plot_dat <- pivot_longer(summary_dat, 2:ncol(summary_dat), names_to = "System", values_to = "Percentage of present genes") 
   
   if(nrow(presence_table) > 1) {
     plot_dat <- cluster_data(plot_dat, summary_dat, "System")
@@ -66,12 +65,13 @@ get_summary_plot <- function(presence_table, hide_absent = FALSE, presence_col =
 #' @importFrom tidyr pivot_longer
 #' @importFrom dplyr left_join group_by summarise
 get_count_table <- function(presence_table) {
-  presence_table %>% 
-    add_missing_genes() %>% 
-    pivot_longer(., 2:ncol(.), names_to = "Gene", values_to = "Presence") %>% 
-    left_join(adhesins_df) %>% 
-    group_by(System) %>% 
-    summarise(gene_count = sum(Presence))
+  summarise(
+    group_by(
+      left_join(
+        pivot_longer(add_missing_genes(presence_table), 2:ncol(add_missing_genes(presence_table)), names_to = "Gene", values_to = "Presence"),
+        adhesins_df), 
+      System),
+    gene_count = sum(Presence))
 }
 
 

@@ -9,20 +9,20 @@
 #' specified as a hex color code
 #' @param absence_col color of the tiles representing absent genes. Must be
 #' specified as a hex color code
-#' @importFrom dplyr left_join ungroup %>% filter
+#' @importFrom dplyr left_join ungroup filter
 #' @importFrom ggplot2 ggplot geom_tile scale_fill_manual ggtitle theme
 #' @export
 get_system_plot <- function(presence_table, system, presence_col = "#e42b24", absence_col = "#85c1ff") {
   
-  plot_dat <- get_presence_plot_data(presence_table) %>% 
-    left_join(., adhesins_df, by = "Gene") %>% 
-    ungroup()
+  plot_dat <- ungroup(
+    left_join(get_presence_plot_data(presence_table), 
+              adhesins_df, by = "Gene"))
   
-    filter(plot_dat, System == system) %>% 
-    ggplot(aes(x = Gene, y = File, fill = Presence)) +
-      geom_tile() +
-      scale_fill_manual("Presence", values = c("yes" = presence_col, "no" = absence_col), drop = FALSE) +
-      ggtitle(system) +
-      plot_theme() +
-      theme(legend.position = "right")
+  ggplot(filter(plot_dat, System == system),
+         aes(x = Gene, y = File, fill = Presence)) +
+    geom_tile() +
+    scale_fill_manual("Presence", values = c("yes" = presence_col, "no" = absence_col), drop = FALSE) +
+    ggtitle(system) +
+    plot_theme() +
+    theme(legend.position = "right")
 }

@@ -19,17 +19,19 @@
 #' @return a data frame of gene presence/absence. The first column contains
 #' the names of input files and the following correspond to analysed genes.
 #' Presence of a gene is indicated by 1, whereas absence by 0. 
-#' @importFrom dplyr group_by summarise mutate filter %>% ungroup
+#' @importFrom dplyr group_by summarise mutate filter ungroup
 #' @importFrom tidyr pivot_wider
 #' @export
 get_presence_table <- function(blast_res, add_missing = TRUE, identity_threshold = 70, evalue_threshold = 1e-50) {
-  res <- blast_res %>% 
-    group_by(File, Subject) %>% 
-    summarise(Presence = ifelse(any(`% identity` > identity_threshold & Evalue < evalue_threshold), 1, 0)) %>% 
-    mutate(Gene = Subject) %>% 
-    filter(Presence == 1)
-  pivoted_res <- res[, c("File", "Gene", "Presence")] %>% 
-    pivot_wider(names_from = Gene, values_from = Presence, values_fill = 0)
+  res <- filter(
+    mutate(
+      summarise(
+        group_by(blast_res, File, Subject),
+        Presence = ifelse(any(`% identity` > identity_threshold & Evalue < evalue_threshold), 1, 0)),
+      Gene = Subject),
+    Presence == 1)
+  pivoted_res <- pivot_wider(res[, c("File", "Gene", "Presence")],
+    names_from = Gene, values_from = Presence, values_fill = 0)
   # Check for genes that were not found
   if(add_missing == TRUE) {
     if(length(unique(res[["Gene"]]) != length(unique(adhesins_df[["Gene"]])))) {
@@ -64,9 +66,9 @@ get_presence_plot_data <- function(presence_table, systems = unique(adhesins_df[
   all_genes <- unique(adhesins_df[["Gene"]])
   selected_genes <- unique(filter(adhesins_df, System %in% systems)[["Gene"]])
   
-  plot_dat <- presence_table %>% 
-    pivot_longer(., 2:ncol(.), names_to = "Gene", values_to = "Presence") %>% 
-    filter(Gene %in% selected_genes)
+  plot_dat <- filter(
+    pivot_longer(presence_table, 2:ncol(presence_table), names_to = "Gene", values_to = "Presence"),
+    Gene %in% selected_genes)
   
   if(nrow(presence_table) > 1) {
     plot_dat <- cluster_data(plot_dat, presence_table, "Gene")

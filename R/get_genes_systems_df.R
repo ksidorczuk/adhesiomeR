@@ -32,10 +32,11 @@ get_genes_in_systems_db <- function(seq_file) {
                    stringsAsFactors = FALSE)
   df[["System"]] <- gsub("^ ", "", df[["System"]])
   do.call(rbind, lapply(unique_genes, function(ith_gene) {
-    data.frame(Gene = ith_gene,
-               System = strsplit(df[["System"]][which(df[["Gene"]] == ith_gene)], ";")[[1]],
-               stringsAsFactors = FALSE) %>% 
-      mutate(System = gsub("_", " ", System))
+    mutate(
+      data.frame(Gene = ith_gene,
+                 System = strsplit(df[["System"]][which(df[["Gene"]] == ith_gene)], ";")[[1]],
+                 stringsAsFactors = FALSE),
+      System = gsub("_", " ", System))
   })
   )
 }
