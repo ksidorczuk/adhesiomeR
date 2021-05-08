@@ -87,7 +87,12 @@ do_blast_single <- function(input_file, blast_dir = Sys.which("blastn")) {
              })
   }
   name <- last(strsplit(input_file, "/")[[1]])
-  res <- read.delim(paste0(input_file, ".blast"), header = FALSE)
+  res <- tryCatch(
+    read.delim(paste0(input_file, ".blast"), header = FALSE), 
+    error = function(e) {
+      msg <- conditionMessage(e)
+      if(msg == "no lines available in input") as.data.frame(matrix(nrow = 1, ncol = 12))
+    })
   colnames(res) <- c("Query", "Subject", "% identity", "Alignment length", "Mismatches",
                      "Gap opens", "Query start", "Query end", "Subject start", "Subject end", "Evalue", "Bit score")
   file.remove(paste0(input_file, ".blast"))

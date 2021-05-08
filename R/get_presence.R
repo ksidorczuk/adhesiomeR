@@ -23,15 +23,13 @@
 #' @importFrom tidyr pivot_wider
 #' @export
 get_presence_table <- function(blast_res, add_missing = TRUE, identity_threshold = 70, evalue_threshold = 1e-50) {
-  res <- filter(
-    mutate(
-      summarise(
-        group_by(blast_res, File, Subject),
-        Presence = ifelse(any(`% identity` > identity_threshold & Evalue < evalue_threshold), 1, 0)),
-      Gene = Subject),
-    Presence == 1)
+  res <- mutate(
+    summarise(
+      group_by(blast_res, File, Subject),
+      Presence = ifelse(any(`% identity` > identity_threshold & Evalue < evalue_threshold), 1, 0)),
+    Gene = Subject)
   pivoted_res <- pivot_wider(res[, c("File", "Gene", "Presence")],
-    names_from = Gene, values_from = Presence, values_fill = 0)
+                             names_from = Gene, values_from = Presence, values_fill = 0)
   # Check for genes that were not found
   if(add_missing == TRUE) {
     if(length(unique(res[["Gene"]]) != length(unique(adhesins_df[["Gene"]])))) {
