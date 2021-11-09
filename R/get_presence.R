@@ -59,6 +59,8 @@ cluster_data <- function(df, data_to_cluster, var_name) {
 
 #' @importFrom dplyr filter ungroup
 #' @importFrom tidyr pivot_longer
+#' @noRd
+#' @export
 get_presence_plot_data <- function(presence_table, systems = unique(adhesins_df[["System"]])) {
   
   all_genes <- unique(adhesins_df[["Gene"]])

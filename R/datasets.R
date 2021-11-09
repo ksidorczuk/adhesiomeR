@@ -5,3 +5,11 @@
 #' @format a data frame with two columns and 435 rows
 #' @keywords datasets
 NULL
+
+#' @name UMAP_data
+#' @title UMAP clustering of pathotyped RefSeq genomes 
+#' @description List ....
+#' @docType data
+#' @format a list
+#' @keywords datasets
+NULL

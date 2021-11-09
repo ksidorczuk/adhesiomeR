@@ -1,3 +1,5 @@
+#' @export
+#' @noRd
 validate_input_file <- function(input_file) {
   if(!file.exists(input_file)) stop(paste0("File ", input_file, "does not exist.")) 
   x <- readLines(input_file)
@@ -8,6 +10,8 @@ validate_input_file <- function(input_file) {
 }
 
 #' @importFrom stats setNames
+#' @export
+#' @noRd
 add_missing_genes <- function(results) {
   missing <- unique(adhesins_df[["Gene"]])[which(!(unique(adhesins_df[["Gene"]]) %in% colnames(results)))]
   if(length(missing) > 0) {
@@ -18,6 +22,8 @@ add_missing_genes <- function(results) {
 }
 
 #' @importFrom ggplot2 theme_bw theme element_blank element_text
+#' @export
+#' @noRd
 plot_theme <- function() {
   theme_bw() +
     theme(axis.text.x = element_text(angle = 90),
@@ -29,6 +35,8 @@ plot_theme <- function() {
 
 
 #' @importFrom ggplot2 ggsave theme
+#' @export
+#' @noRd
 generate_report_files <- function(presence_table, elements = c("summary_table", "summary_plot", 
                                                                "presence_table", "presence_plot"), 
                                   outdir = ".", hide_absent_genes = FALSE, hide_absent_systems = FALSE, 
@@ -69,3 +77,7 @@ generate_report_files <- function(presence_table, elements = c("summary_table", 
   }
 }
 
+#' @export
+#' @noRd
+pathotype_colors <- c("aEPEC" = "#45e495", "STEC" = "#ca45e4", "NA" = "#949494", "EAEC" = "#e2ab35", "EHEC" = "#e44444", "NMEC" = "#e44496", 
+                      "DAEC" = "#e46f44", "Nonpathogenic" = "#44b7e4", "ETEC" = "#8f44e4", "UPEC" = "#e1e444", "tEPEC" = "#9de444", "EIEC" = "#4471e4")

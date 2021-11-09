@@ -11,8 +11,10 @@ library(foreach)
 library(doParallel)
 library(pander)
 library(rmarkdown)
+library(ggrepel)
 
 data(adhesins_df)
+data(UMAP_data)
 
 source("shiny-utils.R")
 
@@ -44,6 +46,7 @@ shinyServer(function(input, output, session) {
     hideTab("adhesiomer", "all_genes")
     hideTab("adhesiomer", "systems")
     hideTab("adhesiomer", "summary_plot")
+    hideTab("adhesiomer", "clustering")
     hideTab("adhesiomer", "report")
     } else {
       showTab("adhesiomer", "blast_res")
@@ -51,6 +54,7 @@ shinyServer(function(input, output, session) {
       showTab("adhesiomer", "all_genes")
       showTab("adhesiomer", "systems")
       showTab("adhesiomer", "summary_plot")
+      showTab("adhesiomer", "clustering")
       showTab("adhesiomer", "report")
     }
   })
@@ -75,7 +79,7 @@ shinyServer(function(input, output, session) {
   
   
   output[["adhesins"]] <- renderDataTable({
-    my_DT(adhesiomeR::adhesins_df)
+    my_DT(adhesins_df)
   })
   
   output[["input_tab"]] <- renderDataTable({
@@ -130,9 +134,12 @@ shinyServer(function(input, output, session) {
   
   presence_plot_dat <- reactive({
     validate(need(presence_tab, "Please run BLAST to see the results."))
-    adhesiomeR:::get_presence_plot_data(presence_tab(), filters[["systems"]])
+    get_presence_plot_data(presence_tab(), filters[["systems"]])
   })
   
+  clustering_plot <- reactive({
+    plot_clustering_with_pathotypes(presence_tab(), show_labels = FALSE)
+  })
   
   output[["blast_res"]] <- renderDataTable({
     #validate(need(nrow(blast_results() > 0), "Please run BLAST to see the results."))
@@ -147,6 +154,16 @@ shinyServer(function(input, output, session) {
   output[["systems_summary_table"]] <- renderDataTable({
     get_summary_table(presence_tab()) %>%
       my_DT()
+  })
+  
+  output[["clustering_plot"]] <- renderPlot({
+    if(input[["clustering_labels"]] == TRUE) {
+      clustering_plot() +
+        geom_label_repel(box.padding = 1.5,
+                         show.legend = FALSE)
+    } else{
+      clustering_plot()
+    }
   })
   
   summary_table <- reactive({
@@ -176,7 +193,7 @@ shinyServer(function(input, output, session) {
   
   scaling_dat <- reactive({
     req(all_genes_plot_dat)
-    adhesiomeR:::get_presence_plot_data(all_genes_plot_dat(), systems = filters[["systems"]])
+    get_presence_plot_data(all_genes_plot_dat(), systems = filters[["systems"]])
   })
   
   observe({
@@ -241,7 +258,7 @@ shinyServer(function(input, output, session) {
       # permission to the current working directory
       owd <- setwd(tempdir())
       on.exit(setwd(owd))
-      adhesiomeR:::generate_report_files(presence_table = presence_tab(), elements = input[["elements"]], outdir = owd,
+      generate_report_files(presence_table = presence_tab(), elements = input[["elements"]], outdir = owd,
                                          hide_absent_genes = input[["report_hide_genes"]], hide_absent_systems = input[["report_hide_systems"]],
                                          presence_col = filters[["presence_col"]], absence_col = filters[["absence_col"]])
       file.copy(src, "adhesiomeR-report.Rmd", overwrite = TRUE)
