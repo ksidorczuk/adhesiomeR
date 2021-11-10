@@ -2,6 +2,7 @@ library(shiny)
 library(DT)
 library(shinyWidgets)
 library(adhesiomeR)
+library(shinycssloaders)
 
 data(adhesins_df)
 
