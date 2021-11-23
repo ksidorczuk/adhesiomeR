@@ -4,7 +4,11 @@
 \alias{plot_clustering_with_pathotypes}
 \title{Plot clustering with pathotypes}
 \usage{
-plot_clustering_with_pathotypes(presence_table, show_labels = TRUE)
+plot_clustering_with_pathotypes(
+  presence_table,
+  show_labels = TRUE,
+  pathotypes = "detailed"
+)
 }
 \arguments{
 \item{presence_table}{data frame with gene presence/absence obtained 
@@ -12,6 +16,16 @@ using \code{\link{get_presence_table}} function.}
 
 \item{show_labels}{logical indicating if labels with filenames of 
 the analysed genomes should be plotted. Default is \code{TRUE}.}
+
+\item{pathotypes}{one of \code{"detailed"} or \code{"intestinal"}
+indicating coloring scheme of the plot. By default \code{"detailed"}
+is used, meaning that following pathotypes are indicated by colors:
+aEPEC, tEPEC, EHEC, ETEC, EAEC, EIEC, DAEC, STEC, UPEC, NMEC, 
+Nonpathogenic, NA (unknown). If \code{"intestinal"} is selected, 
+colors indicate following groups: InPEC (intestinal pathogenic, 
+includes aEPEC, tEPEC, EHEC, ETEC, EAEC, EIEC, DAEC, STEC), ExPEC
+(extraintestinal pathogenic, includes UPEC and NMEC), Nonpathogenic
+and NA (unknown).}
 }
 \value{
 A plot with the clustering results

@@ -49,13 +49,12 @@ run_blast <- function(input_files, nt, updateProgress = NULL) {
     res <- read.delim(output, header = FALSE)
     colnames(res) <- c("Query", "Subject", "% identity", "Alignment length", "Mismatches",
                        "Gap opens", "Query start", "Query end", "Subject start", "Subject end", "Evalue", "Bit score")
-
+    
     file.remove(input, output)
-   # updateProgress(value = 1)
+    # updateProgress(value = 1)
     mutate(res, File = input_files[[i, 1]],
            Subject = sapply(Subject, function(i) strsplit(i, "~")[[1]][2]))
   } 
   stopCluster(parallel_cluster)
   res
 }
-

@@ -137,8 +137,8 @@ shinyServer(function(input, output, session) {
     get_presence_plot_data(presence_tab(), filters[["systems"]])
   })
   
-  clustering_plot <- reactive({
-    plot_clustering_with_pathotypes(presence_tab(), show_labels = FALSE)
+  clustering_plot_dat <- reactive({
+    get_clustering_plot_data(presence_tab())
   })
   
   output[["blast_res"]] <- renderDataTable({
@@ -157,13 +157,7 @@ shinyServer(function(input, output, session) {
   })
   
   output[["clustering_plot"]] <- renderPlot({
-    if(input[["clustering_labels"]] == TRUE) {
-      clustering_plot() +
-        geom_label_repel(box.padding = 1.5,
-                         show.legend = FALSE)
-    } else{
-      clustering_plot()
-    }
+      plot_clustering(clustering_plot_dat(), show_labels = input[["clustering_labels"]], pathotypes = input[["pathotype"]])
   })
   
   summary_table <- reactive({

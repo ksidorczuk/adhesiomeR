@@ -6,6 +6,15 @@
 #' using \code{\link{get_presence_table}} function.
 #' @param show_labels logical indicating if labels with filenames of 
 #' the analysed genomes should be plotted. Default is \code{TRUE}.
+#' @param pathotypes one of \code{"detailed"} or \code{"intestinal"}
+#' indicating coloring scheme of the plot. By default \code{"detailed"}
+#' is used, meaning that following pathotypes are indicated by colors:
+#' aEPEC, tEPEC, EHEC, ETEC, EAEC, EIEC, DAEC, STEC, UPEC, NMEC, 
+#' Nonpathogenic, NA (unknown). If \code{"intestinal"} is selected, 
+#' colors indicate following groups: InPEC (intestinal pathogenic, 
+#' includes aEPEC, tEPEC, EHEC, ETEC, EAEC, EIEC, DAEC, STEC), ExPEC
+#' (extraintestinal pathogenic, includes UPEC and NMEC), Nonpathogenic
+#' and NA (unknown).
 #' @return A plot with the clustering results
 #' @seealso get_presence_table
 #' @importFrom stats predict setNames
@@ -13,27 +22,10 @@
 #' @importFrom ggplot2 aes geom_point theme_bw scale_color_manual scale_size_manual
 #' @importFrom ggrepel geom_label_repel
 #' @export
-plot_clustering_with_pathotypes <- function(presence_table, show_labels = TRUE) {
-  pred_res <- as.data.frame(predict(UMAP_data[["umap"]], select(presence_table, -"File")))
-  colnames(pred_res) <- c("dim1", "dim2")
-  plot_dat <- bind_rows(data.frame(dim1 = UMAP_data[["umap"]][["layout"]][,1],
-                                   dim2 = UMAP_data[["umap"]][["layout"]][,2],
-                                   pathotype = UMAP_data[["labels"]],
-                                   label = NA),
-                        mutate(pred_res,
-                               pathotype = "new",
-                               label = presence_table[["File"]]))
-  p <- ggplot(plot_dat, aes(x = dim1, y = dim2, color = pathotype, label = label)) +
-    geom_point(aes(size = pathotype == "new")) +
-    theme_bw() +
-    scale_color_manual("Pathotype", values = c(pathotype_colors, "new" = "black"),
-                       breaks = sort(names(pathotype_colors))) +
-    scale_size_manual(values = c(1, 3), guide = "none")
-  if(show_labels == TRUE) {
-    p +
-      geom_label_repel(box.padding = 1.5,
-                       show.legend = FALSE)
-  } else{
-    p
+get_clustering_plot <- function(presence_table, show_labels = TRUE, pathotypes = "detailed") {
+  if(!(pathotypes %in% c("detailed", "intestinal"))) {
+    stop(paste0("Incorrect value passed as pathotypes argument. Allowed values are 'detailed' or 'intestinal'."))
   }
+  plot_dat <- get_clustering_plot_data(presence_table)
+  plot_clustering(plot_dat, show_labels = show_labels, pathotypes = pathotypes)
 }
