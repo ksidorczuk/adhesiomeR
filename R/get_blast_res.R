@@ -45,7 +45,7 @@ get_blast_res <- function(input_file_list, nt = 1, blast_dir = Sys.which("blastn
     do_blast_single(input_file_list[[i]], blast_dir)
   }
   stopCluster(parallel_cluster)
-  mutate(res, Subject = sapply(Subject, function(i) strsplit(i, "~")[[1]][2]))
+  mutate(res, Subject = sapply(Subject, function(i) strsplit(i, "~~~")[[1]][2]))
     
 }
 
