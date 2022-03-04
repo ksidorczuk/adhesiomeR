@@ -7,8 +7,8 @@
 get_presence_table(
   blast_res,
   add_missing = TRUE,
-  identity_threshold = 70,
-  evalue_threshold = 1e-50
+  identity_threshold = 75,
+  evalue_threshold = 1e-100
 )
 }
 \arguments{

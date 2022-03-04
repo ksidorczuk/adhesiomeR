@@ -22,7 +22,7 @@
 #' @importFrom dplyr group_by summarise mutate filter ungroup
 #' @importFrom tidyr pivot_wider
 #' @export
-get_presence_table <- function(blast_res, add_missing = TRUE, identity_threshold = 70, evalue_threshold = 1e-50) {
+get_presence_table <- function(blast_res, add_missing = TRUE, identity_threshold = 75, evalue_threshold = 1e-100) {
   res <- mutate(
     summarise(
       group_by(blast_res, File, Subject),

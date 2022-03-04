@@ -24,8 +24,8 @@ shinyServer(function(input, output, session) {
   
   all_systems <- unique(adhesins_df[["System"]])
   
-  filters <- reactiveValues(thresh = 50,
-                            evalue = 1e-50,
+  filters <- reactiveValues(thresh = 75,
+                            evalue = 1e-100,
                             systems = unique(adhesins_df[["System"]]),
                             presence_col = "#e00e00",
                             absence_col = "#85c1ff",
