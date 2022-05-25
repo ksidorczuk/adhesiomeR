@@ -29,6 +29,9 @@ get_presence_table <- function(blast_res, add_missing = TRUE, identity_threshold
       group_by(blast_res, File, Subject),
       Presence = ifelse(any(`% identity` > identity_threshold & Evalue < evalue_threshold), 1, 0)),
     Gene = Subject)
+  if("NA" %in% colnames(res)) {
+    res <- res[, which(!(colnames(res) != "NA"))]
+  }
   pivoted_res <- pivot_wider(res[, c("File", "Gene", "Presence")],
                              names_from = Gene, values_from = Presence, values_fill = 0)
   # Check for genes that were not found
