@@ -13,3 +13,11 @@ NULL
 #' @format a list
 #' @keywords datasets
 NULL
+
+#' @name gene_groups
+#' @title Groups of very dimilar genes
+#' @description A list of groups for very similar genes
+#' @docType data
+#' @format a list
+#' @keywords datasets
+NULL

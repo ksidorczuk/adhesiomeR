@@ -31,12 +31,17 @@ get_presence_table <- function(blast_res, add_missing = TRUE, identity_threshold
   pivoted_res <- pivot_wider(res[, c("File", "Gene", "Presence")],
                              names_from = Gene, values_from = Presence, values_fill = 0)
   # Check for genes that were not found
-  if(add_missing == TRUE) {
-    if(length(unique(res[["Gene"]]) != length(unique(adhesins_df[["Gene"]])))) {
-      pivoted_res <- add_missing_genes(pivoted_res)
-    }
+  pivoted_res <- ungroup(add_missing_genes(pivoted_res))
+  # Group similar genes
+  group_res <- do.call(cbind, lapply(names(gene_groups), function(ith_group) {
+    x <- select(pivoted_res, gene_groups[[ith_group]])
+    setNames(data.frame(group = ifelse(rowSums(x) > 0, 1, 0)), ith_group)
+  }))
+  updated_res <- cbind(pivoted_res[, colnames(pivoted_res)[which(!(colnames(pivoted_res) %in% unlist(unname(gene_groups))))]])
+  if(add_missing == FALSE) {
+    updated_res <- updated_res[, c(TRUE, colSums(updated_res[, 2:ncol(updated_res)]) > 0)]
   }
-  ungroup(pivoted_res)
+  updated_res
 }
 
 
@@ -63,7 +68,6 @@ cluster_data <- function(df, data_to_cluster, var_name) {
 #' @export
 get_presence_plot_data <- function(presence_table, systems = unique(adhesins_df[["System"]])) {
   
-  all_genes <- unique(adhesins_df[["Gene"]])
   selected_genes <- unique(filter(adhesins_df, System %in% systems)[["Gene"]])
   
   plot_dat <- filter(
