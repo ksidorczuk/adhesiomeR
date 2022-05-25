@@ -23,6 +23,7 @@
 #' @importFrom tidyr pivot_wider
 #' @export
 get_presence_table <- function(blast_res, add_missing = TRUE, identity_threshold = 75, evalue_threshold = 1e-100) {
+  gene_groups <- adhesiomeR::gene_groups
   res <- mutate(
     summarise(
       group_by(blast_res, File, Subject),
@@ -37,7 +38,8 @@ get_presence_table <- function(blast_res, add_missing = TRUE, identity_threshold
     x <- select(pivoted_res, gene_groups[[ith_group]])
     setNames(data.frame(group = ifelse(rowSums(x) > 0, 1, 0)), ith_group)
   }))
-  updated_res <- cbind(pivoted_res[, colnames(pivoted_res)[which(!(colnames(pivoted_res) %in% unlist(unname(gene_groups))))]])
+  updated_res <- cbind(pivoted_res[, colnames(pivoted_res)[which(!(colnames(pivoted_res) %in% unlist(unname(gene_groups))))]],
+                       group_res)
   if(add_missing == FALSE) {
     updated_res <- updated_res[, c(TRUE, colSums(updated_res[, 2:ncol(updated_res)]) > 0)]
   }
