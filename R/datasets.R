@@ -15,8 +15,17 @@ NULL
 NULL
 
 #' @name gene_groups
-#' @title Groups of very dimilar genes
+#' @title Groups of very similar genes
 #' @description A list of groups for very similar genes
+#' @docType data
+#' @format a list
+#' @keywords datasets
+NULL
+
+#' @name problematic_genes
+#' @title Groups of similar genes
+#' @description A list of groups for genes with
+#' some level of similarity
 #' @docType data
 #' @format a list
 #' @keywords datasets

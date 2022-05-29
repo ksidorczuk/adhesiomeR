@@ -24,10 +24,12 @@
 #' @export
 get_presence_table <- function(blast_res, add_missing = TRUE, identity_threshold = 75, evalue_threshold = 1e-100) {
   gene_groups <- adhesiomeR::gene_groups
+  problematic_genes <- adhesiomeR::problematic_genes
   res <- mutate(
     summarise(
       group_by(blast_res, File, Subject),
-      Presence = ifelse(any(`% identity` > identity_threshold & Evalue < evalue_threshold), 1, 0)),
+      Presence = ifelse(any(`% identity` > identity_threshold & Evalue < evalue_threshold), 
+                        `% identity`, 0)),
     Gene = Subject)
   pivoted_res <- pivot_wider(res[, c("File", "Gene", "Presence")],
                              names_from = Gene, values_from = Presence, values_fill = 0)
@@ -36,12 +38,23 @@ get_presence_table <- function(blast_res, add_missing = TRUE, identity_threshold
   }
   # Check for genes that were not found
   pivoted_res <- ungroup(add_missing_genes(pivoted_res))
-  # Group similar genes
+  
+  # Decide between similar genes
+  y <- pivoted_res
+  for (i in problematic_genes) {
+    y <- data.frame(y[, which(!(colnames(y) %in% i))],
+                    t(apply(y[, which(colnames(y) %in% i)], 1, 
+                            function(x) replace(x, x != max(x, na.rm = TRUE), 0))),
+                    check.names = FALSE)
+  }
+  y <- mutate(y, across(2:ncol(y), function(x) ifelse(x > 0, 1, 0)))
+
+  # Group the most similar genes
   group_res <- do.call(cbind, lapply(names(gene_groups), function(ith_group) {
-    x <- select(pivoted_res, gene_groups[[ith_group]])
+    x <- select(y, gene_groups[[ith_group]])
     setNames(data.frame(group = ifelse(rowSums(x) > 0, 1, 0)), ith_group)
   }))
-  updated_res <- cbind(pivoted_res[, colnames(pivoted_res)[which(!(colnames(pivoted_res) %in% unlist(unname(gene_groups))))]],
+  updated_res <- cbind(y[, colnames(y)[which(!(colnames(y) %in% unlist(unname(gene_groups))))]],
                        group_res)
   if(add_missing == FALSE) {
     updated_res <- updated_res[, c(TRUE, colSums(updated_res[, 2:ncol(updated_res)]) > 0)]
