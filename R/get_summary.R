@@ -11,7 +11,7 @@
 #' @return a data frame with systems presence indicated by a percentage of
 #' found genes. First column contains names of the input files and the following
 #' correspond to analysed systems. 
-#' @importFrom dplyr left_join group_by summarise filter n
+#' @importFrom dplyr left_join group_by summarise filter n case_when select mutate
 #' @importFrom tidyr pivot_longer pivot_wider
 #' @export
 get_summary_table <- function(presence_table, hide_absent = FALSE) {
