@@ -15,6 +15,7 @@
 #' @importFrom tidyr pivot_longer pivot_wider
 #' @export
 get_summary_table <- function(presence_table, hide_absent = FALSE) {
+  res <- select(res, -c("faeA", "draP", "daaP"))
   res <- summarise(
     group_by(
       left_join(
@@ -23,10 +24,74 @@ get_summary_table <- function(presence_table, hide_absent = FALSE) {
       File, System),
     gene_percentage = round(sum(Presence)*100/n(), 2))
   
+  res[["gene_percentage"]] <- case_when(gene_percentage == 100 ~ "Present",
+                                        gene_percentage > 0 & gene_percentage < 100 ~ "Partial",
+                                        gene_percentage == 0 ~ "Absent")
+  
+  pivoted_res <- left_join(pivot_wider(res, File, names_from = "System", values_from = "gene_percentage", values_fill = 0),
+                           presence_table[, c("File", "eae")])
+  
+  updated_res <- mutate(
+    pivoted_res,
+    Dr_fimbriae = ifelse(`Afa-I_adhesins` == "Present" | `Afa-III_adhesins` == "Present" | F1845_fimbriae == "Present",
+                         "Absent", Dr_fimbriae),
+    `Afa-I_adhesins` = ifelse(`Afa-I_adhesins` == "Partial" & `Afa-III_adhesins` == "Partial" & F1845_fimbriae == "Partial" & Dr_fimbriae == "Present",
+                              "Absent", `Afa-I_adhesins`),
+    `Afa-III_adhesins` = ifelse(`Afa-I_adhesins` == "Partial" & `Afa-III_adhesins` == "Partial" & F1845_fimbriae == "Partial" & Dr_fimbriae == "Present",
+                                "Absent", `Afa-III_adhesins`),
+    F1845_fimbriae = ifelse(`Afa-I_adhesins` == "Partial" & `Afa-III_adhesins` == "Partial" & F1845_fimbriae == "Partial" & Dr_fimbriae == "Present",
+                            "Absent", F1845_fimbriae),
+    Intimin = ifelse(Intimin == "Partial" & eae == 0, "Absent", Intimin),
+    CS1_fimbriae = ifelse(CS17_fimbriae == "Present" | CS19_fimbriae == "Present" | PCF071_fimbriae == "Present",
+                          "Absent", CS1_fimbriae),
+    CS17_fimbriae = ifelse(CS1_fimbriae == "Present" | CS19_fimbriae == "Present" | PCF071_fimbriae == "Present",
+                           "Absent", CS17_fimbriae),
+    CS19_fimbriae = ifelse(CS17_fimbriae == "Present" | CS1_fimbriae == "Present" | PCF071_fimbriae == "Present",
+                           "Absent", CS19_fimbriae),
+    PCF071_fimbriae = ifelse(CS17_fimbriae == "Present" | CS19_fimbriae == "Present" | CS1_fimbriae == "Present",
+                             "Absent", PCF071_fimbriae),
+    `CFA/I_fimbriae` = ifelse(CS14_fimbriae == "Present" | CS4_fimbriae == "Present",
+                              "Absent", `CFA/I_fimbriae`),
+    CS14_fimbriae = ifelse(`CFA/I_fimbriae` == "Present" | CS4_fimbriae == "Present",
+                           "Absent", CS14_fimbriae),
+    CS4_fimbriae = ifelse(`CFA/I_fimbriae` == "Present" | CS14_fimbriae == "Present",
+                          "Absent", CS4_fimbriae),
+    CS20_fimbriae = ifelse(CS28A_Fimbriae == "Present" | CS28B_Fimbriae == "Present",
+                           "Absent", CS20_fimbriae),
+    CS28A_Fimbriae = ifelse(CS20_fimbriae == "Present" | CS28B_Fimbriae == "Present",
+                            "Absent", CS28A_Fimbriae),
+    CS28B_Fimbriae = ifelse(CS28A_Fimbriae == "Present" | CS20_fimbriae == "Present",
+                            "Absent", CS28B_Fimbriae),
+    F17a_fimbriae = ifelse(F17b_fimbriae == "Present" | F17d_fimbriae == "Present",
+                           "Absent", F17a_fimbriae),
+    F17b_fimbriae = ifelse(F17a_fimbriae == "Present" | F17d_fimbriae == "Present",
+                           "Absent", F17b_fimbriae),
+    F17d_fimbriae = ifelse(F17b_fimbriae == "Present" | F17a_fimbriae == "Present",
+                           "Absent", F17d_fimbriae),
+    CS31A_Fimbriae = ifelse(F41_Fimbriae == "Present" | K88_Fimbriae == "Present" | CS23_adhesins == "Present" | CS13_fimbriae == "Present",
+                            "Absent", CS31A_Fimbriae),
+    F41_Fimbriae = ifelse(CS31A_Fimbriae == "Present" | K88_Fimbriae == "Present" | CS23_adhesins == "Present" | CS13_fimbriae == "Present",
+                          "Absent", F41_Fimbriae),
+    K88_Fimbriae = ifelse(CS31A_Fimbriae == "Present" | F41_Fimbriae == "Present" | CS23_adhesins == "Present" | CS13_fimbriae == "Present",
+                          "Absent", K88_Fimbriae),
+    CS23_Fimbriae = ifelse(CS31A_Fimbriae == "Present" | K88_Fimbriae == "Present" | F41_Fimbriae == "Present" | CS13_fimbriae == "Present",
+                           "Absent", CS23_adhesins),
+    CS13_fimbriae = ifelse(CS31A_Fimbriae == "Present" | K88_Fimbriae == "Present" | CS23_adhesins == "Present" | F41_Fimbriae == "Present",
+                           "Absent", CS13_fimbriae),
+    
+    `CS27A/CS27B_fimbriae` = case_when((`CS27A_Fimbriae` == "Present" | `CS27B_Fimbriae` == "Present") | (`CS27A_Fimbriae` == "Present" & `CS27B_Fimbriae` == "Present" ) ~ "Present",
+                                       (`CS27A_Fimbriae` == "Absent" & `CS27B_Fimbriae` == "Partial") | (`CS27A_Fimbriae` == "Partial" & `CS27B_Fimbriae` == "Absent") ~ "Partial",
+                                       TRUE ~ "Absent"
+    )
+  )
+  
+  updated_res <- select(updated_res, -c("eae", "CS27A_Fimbriae", "CS27B_Fimbriae"))
+  
   if(hide_absent == TRUE) {
-    res <- filter(res, gene_percentage > 0)
+    x <- colSums(updated_res == "Absent")
+    updated_res <- updated_res[, which(x != nrow(updated_res))]
   }
-  pivot_wider(res, names_from = System, values_from = gene_percentage, values_fill = 0)
+  updated_res
 }
 
 
