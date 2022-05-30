@@ -21,7 +21,7 @@ get_summary_table <- function(presence_table, hide_absent = FALSE) {
       group_by(
         left_join(
           pivot_longer(add_missing_genes(presence_table), 2:ncol(add_missing_genes(presence_table)), names_to = "Gene", values_to = "Presence"), 
-          adhesins_df, by = "Gene"),
+          adhesins_df_grouped, by = "Gene"),
         File, System),
       gene_percentage = round(sum(Presence)*100/n(), 2)),
     gene_percentage = case_when(gene_percentage == 100 ~ "Present",

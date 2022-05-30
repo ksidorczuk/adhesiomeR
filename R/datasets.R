@@ -6,6 +6,14 @@
 #' @keywords datasets
 NULL
 
+#' @name adhesins_df_grouped
+#' @title Adhesins gene-system data frame with gene groups
+#' @description Adhesins grouped gene-system data frame
+#' @docType data
+#' @format a data frame with two columns and 559 rows
+#' @keywords datasets
+NULL
+
 #' @name UMAP_data
 #' @title UMAP clustering of pathotyped RefSeq genomes 
 #' @description List ....
