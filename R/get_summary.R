@@ -16,19 +16,20 @@
 #' @export
 get_summary_table <- function(presence_table, hide_absent = FALSE) {
   presence_table <- select(presence_table, -c("faeA", "draP", "daaP"))
-  res <- summarise(
-    group_by(
-      left_join(
-        pivot_longer(add_missing_genes(presence_table), 2:ncol(add_missing_genes(presence_table)), names_to = "Gene", values_to = "Presence"), 
-        adhesins_df, by = "Gene"),
-      File, System),
-    gene_percentage = round(sum(Presence)*100/n(), 2))
+  res <- mutate(
+    summarise(
+      group_by(
+        left_join(
+          pivot_longer(add_missing_genes(presence_table), 2:ncol(add_missing_genes(presence_table)), names_to = "Gene", values_to = "Presence"), 
+          adhesins_df, by = "Gene"),
+        File, System),
+      gene_percentage = round(sum(Presence)*100/n(), 2)),
+    gene_percentage = case_when(gene_percentage == 100 ~ "Present",
+                                gene_percentage > 0 & gene_percentage < 100 ~ "Partial",
+                                gene_percentage == 0 ~ "Absent")
+  )
   
-  res[["gene_percentage"]] <- case_when(gene_percentage == 100 ~ "Present",
-                                        gene_percentage > 0 & gene_percentage < 100 ~ "Partial",
-                                        gene_percentage == 0 ~ "Absent")
-  
-  pivoted_res <- left_join(pivot_wider(res, File, names_from = "System", values_from = "gene_percentage", values_fill = 0),
+  pivoted_res <- left_join(pivot_wider(res, File, names_from = "System", values_from = "gene_percentage", values_fill = "Absent"),
                            presence_table[, c("File", "eae")])
   
   updated_res <- mutate(
