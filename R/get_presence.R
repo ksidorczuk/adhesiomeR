@@ -28,18 +28,13 @@
 #' @export
 get_presence_table <- function(blast_res, add_missing = TRUE, identity_threshold = 75, evalue_threshold = 1e-100, count_copies = FALSE) {
   problematic_genes <- adhesiomeR::problematic_genes
-  
-  nonproblematic <- filter(blast_res, !(Subject %in% unlist(problematic_genes)))
-  problematic <- filter(blast_res, Subject %in% unlist(problematic_genes))
-  
-  nonproblematic_res <- get_presence_from_blast(nonproblematic)
-  problematic_res <- bind_rows(
-    lapply(problematic_genes, function(ith_set) {
-      x <- select(
-        mutate(
-          filter(problematic, Subject %in% ith_set), 
-          same_location = FALSE),
-        select(-pathotype))
+  nonproblematic_genes <- adhesiomeR::adhesins_df[["Gene"]][which(!(adhesiomeR::adhesins_df[["Gene"]] %in% unlist(problematic_genes)))]
+  full_res <- data.frame()
+  all_res <- bind_rows(
+    lapply(c(problematic_genes, list(nonproblematic_genes)), function(ith_set) {
+      x <- mutate(
+        filter(blast_res, Subject %in% ith_set), 
+        same_location = FALSE)
       bind_rows(
         lapply(unique(x[["File"]]), function(ith_file) {
           while(any(x[["same_location"]] == FALSE)) {
@@ -49,7 +44,6 @@ get_presence_table <- function(blast_res, add_missing = TRUE, identity_threshold
               select(
                 filter(locations, same_location == TRUE),
                 -same_location))
-            
             x <- filter(locations, same_location == FALSE)
             full_res <- bind_rows(full_res, res)
           }
@@ -58,8 +52,7 @@ get_presence_table <- function(blast_res, add_missing = TRUE, identity_threshold
       )
     })
   ) 
-  all_res <- bind_rows(nonproblematic_res, problematic_res)
-  all_res[["File"]] <- as.factor(File)
+  all_res[["File"]] <- as.factor(all_res[["File"]])
   aggregated_res <- if(count_copies == FALSE) {
     aggregate(. ~ File, data = all_res, FUN = function(i) ifelse(sum(i) > 0, 1, 0))
   } else {
