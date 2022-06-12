@@ -33,23 +33,31 @@ get_presence_table <- function(blast_res, add_missing = TRUE, identity_threshold
   problematic <- filter(blast_res, Subject %in% unlist(problematic_genes))
   
   nonproblematic_res <- get_presence_from_blast(nonproblematic)
-  problematic_res <- lapply(problematic_genes, function(ith_set) {
-    x <- filter(problematic, Subject %in% ith_set) %>% 
-      mutate(same_location = FALSE) %>% 
-      select(-pathotype)
-    lapply(unique(x[["File"]]), function(ith_file) {
-      while(any(x[["same_location"]] == FALSE)) {
-        y <- filter(x, File == ith_file)
-        locations <- check_locations(y)
-        res <- filter(locations, same_location == TRUE) %>% 
-          select(-same_location) %>% 
-          get_presence_from_blast()
-        x <- filter(locations, same_location == FALSE)
-        full_res <- bind_rows(full_res, res)
-      }
-      full_res
-    }) %>% bind_rows()
-  }) %>% bind_rows()
+  problematic_res <- bind_rows(
+    lapply(problematic_genes, function(ith_set) {
+      x <- select(
+        mutate(
+          filter(problematic, Subject %in% ith_set), 
+          same_location = FALSE),
+        select(-pathotype))
+      bind_rows(
+        lapply(unique(x[["File"]]), function(ith_file) {
+          while(any(x[["same_location"]] == FALSE)) {
+            y <- filter(x, File == ith_file)
+            locations <- check_locations(y)
+            res <- get_presence_from_blast(
+              select(
+                filter(locations, same_location == TRUE),
+                -same_location))
+            
+            x <- filter(locations, same_location == FALSE)
+            full_res <- bind_rows(full_res, res)
+          }
+          full_res
+        })
+      )
+    })
+  ) 
   all_res <- bind_rows(nonproblematic_res, problematic_res)
   all_res[["File"]] <- as.factor(File)
   aggregated_res <- if(count_copies == FALSE) {
