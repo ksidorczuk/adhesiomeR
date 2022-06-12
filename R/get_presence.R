@@ -16,51 +16,50 @@
 #' used for labeling a gene as present or absent
 #' @param evalue_threshold \code{numeric} indicating the E-value threshold
 #' used for labeling a gene as present or absent
+#' @param count_copies \code{logical} indicating if occurences of gene 
+#' copies should be counted. An occurence of gene is considered a separate
+#' copy if its location do not overlap with other hit to the same gene.
 #' @return a data frame of gene presence/absence. The first column contains
 #' the names of input files and the following correspond to analysed genes.
-#' Presence of a gene is indicated by 1, whereas absence by 0. 
-#' @importFrom dplyr group_by summarise mutate filter ungroup
+#' Presence of a gene is indicated by 1, whereas absence by 0. In case of
+#' copy counts, numbers of gene copies is presented.
+#' @importFrom dplyr group_by summarise mutate filter ungroup bind_rows select
 #' @importFrom tidyr pivot_wider
 #' @export
-get_presence_table <- function(blast_res, add_missing = TRUE, identity_threshold = 75, evalue_threshold = 1e-100) {
-  gene_groups <- adhesiomeR::gene_groups
+get_presence_table <- function(blast_res, add_missing = TRUE, identity_threshold = 75, evalue_threshold = 1e-100, count_copies = FALSE) {
   problematic_genes <- adhesiomeR::problematic_genes
-  res <- mutate(
-    summarise(
-      group_by(blast_res, File, Subject),
-      Presence = ifelse(any(`% identity` > identity_threshold & Evalue < evalue_threshold), 
-                        `% identity`, 0)),
-    Gene = Subject)
-  pivoted_res <- pivot_wider(res[, c("File", "Gene", "Presence")],
-                             names_from = Gene, values_from = Presence, values_fill = 0)
-  if("NA" %in% colnames(pivoted_res)) {
-    pivoted_res <- pivoted_res[, which(colnames(pivoted_res) != "NA")]
-  }
-  # Check for genes that were not found
-  pivoted_res <- ungroup(add_missing_genes(pivoted_res))
   
-  # Decide between similar genes
-  y <- pivoted_res
-  for (i in problematic_genes) {
-    y <- data.frame(y[, which(!(colnames(y) %in% i))],
-                    t(apply(y[, which(colnames(y) %in% i)], 1, 
-                            function(x) replace(x, x != max(x, na.rm = TRUE), 0))),
-                    check.names = FALSE)
+  nonproblematic <- filter(blast_res, !(Subject %in% unlist(problematic_genes)))
+  problematic <- filter(blast_res, Subject %in% unlist(problematic_genes))
+  
+  nonproblematic_res <- get_presence_from_blast(nonproblematic)
+  problematic_res <- lapply(problematic_genes, function(ith_set) {
+    x <- filter(problematic, Subject %in% ith_set) %>% 
+      mutate(same_location = FALSE) %>% 
+      select(-pathotype)
+    lapply(unique(x[["File"]]), function(ith_file) {
+      while(any(x[["same_location"]] == FALSE)) {
+        y <- filter(x, File == ith_file)
+        locations <- check_locations(y)
+        res <- filter(locations, same_location == TRUE) %>% 
+          select(-same_location) %>% 
+          get_presence_from_blast()
+        x <- filter(locations, same_location == FALSE)
+        full_res <- bind_rows(full_res, res)
+      }
+      full_res
+    }) %>% bind_rows()
+  }) %>% bind_rows()
+  all_res <- bind_rows(nonproblematic_res, problematic_res)
+  all_res[["File"]] <- as.factor(File)
+  aggregated_res <- if(count_copies == FALSE) {
+    aggregate(. ~ File, data = all_res, FUN = function(i) ifelse(sum(i) > 0, 1, 0))
+  } else {
+    aggregate(. ~ File, data = all_res, FUN = sum)
   }
-  y <- mutate(y, across(2:ncol(y), function(x) ifelse(x > 0, 1, 0)))
-
-  # Group the most similar genes
-  group_res <- do.call(cbind, lapply(names(gene_groups), function(ith_group) {
-    x <- select(y, gene_groups[[ith_group]])
-    setNames(data.frame(group = ifelse(rowSums(x) > 0, 1, 0)), ith_group)
-  }))
-  updated_res <- cbind(y[, colnames(y)[which(!(colnames(y) %in% unlist(unname(gene_groups))))]],
-                       group_res)
-  if(add_missing == FALSE) {
-    updated_res <- updated_res[, c(TRUE, colSums(updated_res[, 2:ncol(updated_res)]) > 0)]
-  }
-  updated_res
+  mutate(aggregated_res, File = as.character(File))
 }
+
 
 
 #' @importFrom stats as.dendrogram hclust dist order.dendrogram

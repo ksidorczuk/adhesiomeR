@@ -20,7 +20,9 @@ get_summary_table <- function(presence_table, hide_absent = FALSE) {
     summarise(
       group_by(
         left_join(
-          pivot_longer(add_missing_genes(presence_table), 2:ncol(add_missing_genes(presence_table)), names_to = "Gene", values_to = "Presence"), 
+          pivot_longer(add_missing_genes(presence_table, type = "grouped"), 
+                       2:ncol(add_missing_genes(presence_table, type = "grouped")), 
+                       names_to = "Gene", values_to = "Presence"), 
           adhesins_df_grouped, by = "Gene"),
         File, System),
       gene_percentage = round(sum(Presence)*100/n(), 2)),
@@ -75,7 +77,7 @@ get_summary_table <- function(presence_table, hide_absent = FALSE) {
                           "Absent", F41_Fimbriae),
     K88_Fimbriae = ifelse(CS31A_Fimbriae == "Present" | F41_Fimbriae == "Present" | CS23_adhesins == "Present" | CS13_fimbriae == "Present",
                           "Absent", K88_Fimbriae),
-    CS23_Fimbriae = ifelse(CS31A_Fimbriae == "Present" | K88_Fimbriae == "Present" | F41_Fimbriae == "Present" | CS13_fimbriae == "Present",
+    CS23_adhesins = ifelse(CS31A_Fimbriae == "Present" | K88_Fimbriae == "Present" | F41_Fimbriae == "Present" | CS13_fimbriae == "Present",
                            "Absent", CS23_adhesins),
     CS13_fimbriae = ifelse(CS31A_Fimbriae == "Present" | K88_Fimbriae == "Present" | CS23_adhesins == "Present" | F41_Fimbriae == "Present",
                            "Absent", CS13_fimbriae),
