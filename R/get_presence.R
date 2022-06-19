@@ -25,13 +25,14 @@
 #' copy counts, numbers of gene copies is presented.
 #' @importFrom dplyr group_by summarise mutate filter ungroup bind_rows select
 #' @importFrom tidyr pivot_wider
+#' @importFrom pbapply pblapply
 #' @export
 get_presence_table <- function(blast_res, add_missing = TRUE, identity_threshold = 75, evalue_threshold = 1e-100, count_copies = FALSE) {
   problematic_genes <- adhesiomeR::problematic_genes
   nonproblematic_genes <- adhesiomeR::adhesins_df[["Gene"]][which(!(adhesiomeR::adhesins_df[["Gene"]] %in% unlist(problematic_genes)))]
   full_res <- data.frame()
   all_res <- bind_rows(
-    lapply(c(problematic_genes, list(nonproblematic_genes)), function(ith_set) {
+    pblapply(c(problematic_genes, nonproblematic_genes), cl = 8, function(ith_set) {
       x <- mutate(
         filter(blast_res, Subject %in% ith_set), 
         same_location = FALSE)
