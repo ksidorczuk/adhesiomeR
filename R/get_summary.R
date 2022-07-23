@@ -15,7 +15,7 @@
 #' @importFrom tidyr pivot_longer pivot_wider
 #' @export
 get_summary_table <- function(presence_table, hide_absent = FALSE) {
-  presence_table <- select(presence_table, -c("faeA", "draP", "daaP"))
+  presence_table <- select(presence_table, -"faeA")
   res <- mutate(
     summarise(
       group_by(
