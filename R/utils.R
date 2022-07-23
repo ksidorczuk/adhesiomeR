@@ -165,24 +165,33 @@ check_locations <- function(x) {
 #' @param add_missing \code{logical} indicating if genes not found by BLAST 
 #' should be added. By default \code{TRUE}, meaning that all genes are shown 
 #' in the resulting table, even if they were not found in any genome. 
-#' @param identity_threshold \code{numeric} indicating the percent of identity
-#' used for labeling a gene as present or absent
-#' @param evalue_threshold \code{numeric} indicating the E-value threshold
-#' used for labeling a gene as present or absent
 #' @return a data frame of gene presence/absence. The first column contains
 #' the names of input files and the following correspond to analysed genes.
 #' Presence of a gene is indicated by 1, whereas absence by 0. 
 #' @importFrom dplyr group_by summarise mutate filter ungroup
 #' @importFrom tidyr pivot_wider
 #' @export
-get_presence_from_blast <- function(blast_res, add_missing = TRUE, identity_threshold = 75, evalue_threshold = 1e-100) {
+get_presence_from_blast <- function(blast_res, add_missing = TRUE) {
   gene_groups <- adhesiomeR::gene_groups
-  res <- mutate(
+  short_res <- mutate(
     summarise(
-      group_by(blast_res, File, Subject),
-      Presence = ifelse(any(`% identity` > identity_threshold & Evalue < evalue_threshold), 
+      group_by(
+        filter(
+          blast_res, Subject %in% c("ECs_3735", "daaP", "draP")),
+        File, Subject),
+      Presence = ifelse(any(`% identity` > 75 & Evalue < 10^-70), 
                         `% identity`, 0)),
     Gene = Subject)
+  long_res <- mutate(
+    summarise(
+      group_by(
+        filter(
+          blast_res, !(Subject %in% c("ECs_3735", "daaP", "draP"))),
+        File, Subject),
+      Presence = ifelse(any(`% identity` > 75 & Evalue < 10^-100), 
+                        `% identity`, 0)),
+    Gene = Subject)
+  res <- bind_rows(short_res, long_res)
   pivoted_res <- pivot_wider(res[, c("File", "Gene", "Presence")],
                              names_from = Gene, values_from = Presence, values_fill = 0)
   if("NA" %in% colnames(pivoted_res)) {

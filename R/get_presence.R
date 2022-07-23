@@ -12,10 +12,6 @@
 #' @param add_missing \code{logical} indicating if genes not found by BLAST 
 #' should be added. By default \code{TRUE}, meaning that all genes are shown 
 #' in the resulting table, even if they were not found in any genome. 
-#' @param identity_threshold \code{numeric} indicating the percent of identity
-#' used for labeling a gene as present or absent
-#' @param evalue_threshold \code{numeric} indicating the E-value threshold
-#' used for labeling a gene as present or absent
 #' @param count_copies \code{logical} indicating if occurences of gene 
 #' copies should be counted. An occurence of gene is considered a separate
 #' copy if its location do not overlap with other hit to the same gene.
@@ -27,7 +23,7 @@
 #' @importFrom tidyr pivot_wider
 #' @importFrom pbapply pblapply
 #' @export
-get_presence_table <- function(blast_res, add_missing = TRUE, identity_threshold = 75, evalue_threshold = 1e-100, count_copies = FALSE) {
+get_presence_table <- function(blast_res, add_missing = TRUE, count_copies = FALSE) {
   problematic_genes <- adhesiomeR::problematic_genes
   nonproblematic_genes <- adhesiomeR::adhesins_df[["Gene"]][which(!(adhesiomeR::adhesins_df[["Gene"]] %in% unlist(problematic_genes)))]
   full_res <- data.frame()
