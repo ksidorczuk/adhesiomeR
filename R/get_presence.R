@@ -15,6 +15,7 @@
 #' @param count_copies \code{logical} indicating if occurences of gene 
 #' copies should be counted. An occurence of gene is considered a separate
 #' copy if its location do not overlap with other hit to the same gene.
+#' @param identity identity percent
 #' @return a data frame of gene presence/absence. The first column contains
 #' the names of input files and the following correspond to analysed genes.
 #' Presence of a gene is indicated by 1, whereas absence by 0. In case of
@@ -22,8 +23,9 @@
 #' @importFrom dplyr group_by summarise mutate filter ungroup bind_rows select
 #' @importFrom tidyr pivot_wider
 #' @importFrom pbapply pblapply
+#' @importFrom stats aggregate
 #' @export
-get_presence_table <- function(blast_res, add_missing = TRUE, count_copies = FALSE) {
+get_presence_table <- function(blast_res, add_missing = TRUE, count_copies = FALSE, identity = 75) {
   problematic_genes <- adhesiomeR::problematic_genes
   nonproblematic_genes <- adhesiomeR::adhesins_df[["Gene"]][which(!(adhesiomeR::adhesins_df[["Gene"]] %in% unlist(problematic_genes)))]
   full_res <- data.frame()
@@ -40,7 +42,7 @@ get_presence_table <- function(blast_res, add_missing = TRUE, count_copies = FAL
             res <- get_presence_from_blast(
               select(
                 filter(locations, same_location == TRUE),
-                -same_location))
+                -same_location), identity = identity)
             x <- filter(locations, same_location == FALSE)
             full_res <- bind_rows(full_res, res)
           }

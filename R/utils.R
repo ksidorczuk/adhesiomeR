@@ -162,6 +162,7 @@ check_locations <- function(x) {
 #' over 70% of identity with a subject sequence and has E-value lower than
 #' 1e-50. 
 #' @param blast_res blast results obtained with \code{\link{get_blast_res}}
+#' @param identity blast identity threshold
 #' @param add_missing \code{logical} indicating if genes not found by BLAST 
 #' should be added. By default \code{TRUE}, meaning that all genes are shown 
 #' in the resulting table, even if they were not found in any genome. 
@@ -171,27 +172,36 @@ check_locations <- function(x) {
 #' @importFrom dplyr group_by summarise mutate filter ungroup
 #' @importFrom tidyr pivot_wider
 #' @export
-get_presence_from_blast <- function(blast_res, add_missing = TRUE) {
+get_presence_from_blast <- function(blast_res, add_missing = TRUE, identity = 75) {
   gene_groups <- adhesiomeR::gene_groups
+  faea_res <-  mutate(
+    summarise(
+      group_by(
+        filter(
+          blast_res, Subject == "faeA"),
+        File, Subject),
+      Presence = ifelse(any(`% identity` > identity & Evalue < 10^-35), 
+                        `% identity`, 0)),
+    Gene = Subject)
   short_res <- mutate(
     summarise(
       group_by(
         filter(
-          blast_res, Subject %in% c("ECs_3735", "daaP", "draP")),
+          blast_res, Subject %in% c("ECs_3735", "daaP", "draP", "papI", "papI2", "sfaC", "eprI", "epaR2", "eivJ1", "afaF-III", "daaF", "focI1")),
         File, Subject),
-      Presence = ifelse(any(`% identity` > 75 & Evalue < 10^-70), 
+      Presence = ifelse(any(`% identity` > identity & Evalue < 10^-70), 
                         `% identity`, 0)),
     Gene = Subject)
   long_res <- mutate(
     summarise(
       group_by(
         filter(
-          blast_res, !(Subject %in% c("ECs_3735", "daaP", "draP"))),
+          blast_res, !(Subject %in% c("ECs_3735", "daaP", "draP", "papI", "papI2", "sfaC", "eprI", "epaR2", "eivJ1", "afaF-III", "daaF", "focI1"))),
         File, Subject),
-      Presence = ifelse(any(`% identity` > 75 & Evalue < 10^-100), 
+      Presence = ifelse(any(`% identity` > identity & Evalue < 10^-100), 
                         `% identity`, 0)),
     Gene = Subject)
-  res <- bind_rows(short_res, long_res)
+  res <- bind_rows(bind_rows(short_res, long_res), faea_res)
   pivoted_res <- pivot_wider(res[, c("File", "Gene", "Presence")],
                              names_from = Gene, values_from = Presence, values_fill = 0)
   if("NA" %in% colnames(pivoted_res)) {

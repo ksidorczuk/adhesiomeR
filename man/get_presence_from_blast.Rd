@@ -4,12 +4,7 @@
 \alias{get_presence_from_blast}
 \title{Get presence from BLAST}
 \usage{
-get_presence_from_blast(
-  blast_res,
-  add_missing = TRUE,
-  identity_threshold = 75,
-  evalue_threshold = 1e-100
-)
+get_presence_from_blast(blast_res, add_missing = TRUE, identity = 75)
 }
 \arguments{
 \item{blast_res}{blast results obtained with \code{\link{get_blast_res}}}
@@ -18,11 +13,7 @@ get_presence_from_blast(
 should be added. By default \code{TRUE}, meaning that all genes are shown 
 in the resulting table, even if they were not found in any genome.}
 
-\item{identity_threshold}{\code{numeric} indicating the percent of identity
-used for labeling a gene as present or absent}
-
-\item{evalue_threshold}{\code{numeric} indicating the E-value threshold
-used for labeling a gene as present or absent}
+\item{identity}{blast identity threshold}
 }
 \value{
 a data frame of gene presence/absence. The first column contains

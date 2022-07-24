@@ -7,9 +7,8 @@
 get_presence_table(
   blast_res,
   add_missing = TRUE,
-  identity_threshold = 75,
-  evalue_threshold = 1e-100,
-  count_copies = FALSE
+  count_copies = FALSE,
+  identity = 75
 )
 }
 \arguments{
@@ -19,15 +18,11 @@ get_presence_table(
 should be added. By default \code{TRUE}, meaning that all genes are shown 
 in the resulting table, even if they were not found in any genome.}
 
-\item{identity_threshold}{\code{numeric} indicating the percent of identity
-used for labeling a gene as present or absent}
-
-\item{evalue_threshold}{\code{numeric} indicating the E-value threshold
-used for labeling a gene as present or absent}
-
 \item{count_copies}{\code{logical} indicating if occurences of gene 
 copies should be counted. An occurence of gene is considered a separate
 copy if its location do not overlap with other hit to the same gene.}
+
+\item{identity}{identity percent}
 }
 \value{
 a data frame of gene presence/absence. The first column contains
