@@ -25,12 +25,18 @@
 #' @importFrom pbapply pblapply
 #' @importFrom stats aggregate
 #' @export
-get_presence_table <- function(blast_res, add_missing = TRUE, count_copies = FALSE, identity = 75) {
+get_presence_table <- function(blast_res, add_missing = TRUE, count_copies = FALSE, identity = 75, n_threads) {
   problematic_genes <- adhesiomeR::problematic_genes
   nonproblematic_genes <- adhesiomeR::adhesins_df[["Gene"]][which(!(adhesiomeR::adhesins_df[["Gene"]] %in% unlist(problematic_genes)))]
+  len_groups <- adhesiomeR::len_groups
+  
+  short_res <- filter(blast_res, Subject %in% len_groups[["short"]], Evalue < 10^-35, `% identity` > identity)
+  medium_res <- filter(blast_res, Subject %in% len_groups[["medium"]], Evalue < 10^-70, `% identity` > identity)
+  long_res <- filter(blast_res, Subject %in% len_groups[["long"]], Evalue < 10^-100, `% identity` > identity)
+  blast_res <- bind_rows(bind_rows(short_res, medium_res), long_res)
   full_res <- data.frame()
   all_res <- bind_rows(
-    pblapply(c(problematic_genes, nonproblematic_genes), cl = 8, function(ith_set) {
+    pblapply(c(problematic_genes, nonproblematic_genes), cl = n_threads, function(ith_set) {
       x <- mutate(
         filter(blast_res, Subject %in% ith_set), 
         same_location = FALSE)

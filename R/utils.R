@@ -151,6 +151,20 @@ check_locations <- function(x) {
          same_location = ifelse(between(`Query start`, start, end) | between(`Query end`, start, end), TRUE, FALSE))
 }
 
+#' 
+#'
+get_presence <-  function(blast_res, subjects, evalue, identity) {
+  mutate(
+    summarise(
+      group_by(
+        filter(
+          blast_res, Subject %in% subjects),
+        File, Subject),
+      Presence = ifelse(any(`% identity` > identity & Evalue < evalue), 
+                        `% identity`, 0)),
+    Gene = Subject)
+}
+
 #' Get presence from BLAST
 #' 
 #' This function creates a presence/absence table of genes in analysed genomes
@@ -174,34 +188,13 @@ check_locations <- function(x) {
 #' @export
 get_presence_from_blast <- function(blast_res, add_missing = TRUE, identity = 75) {
   gene_groups <- adhesiomeR::gene_groups
-  faea_res <-  mutate(
+  
+  res <- mutate(
     summarise(
-      group_by(
-        filter(
-          blast_res, Subject == "faeA"),
-        File, Subject),
-      Presence = ifelse(any(`% identity` > identity & Evalue < 10^-35), 
-                        `% identity`, 0)),
+      group_by(blast_res, File, Subject),
+      Presence = 1),
     Gene = Subject)
-  short_res <- mutate(
-    summarise(
-      group_by(
-        filter(
-          blast_res, Subject %in% c("ECs_3735", "daaP", "draP", "papI", "papI2", "sfaC", "eprI", "epaR2", "eivJ1", "afaF-III", "daaF", "focI1")),
-        File, Subject),
-      Presence = ifelse(any(`% identity` > identity & Evalue < 10^-70), 
-                        `% identity`, 0)),
-    Gene = Subject)
-  long_res <- mutate(
-    summarise(
-      group_by(
-        filter(
-          blast_res, !(Subject %in% c("ECs_3735", "daaP", "draP", "papI", "papI2", "sfaC", "eprI", "epaR2", "eivJ1", "afaF-III", "daaF", "focI1"))),
-        File, Subject),
-      Presence = ifelse(any(`% identity` > identity & Evalue < 10^-100), 
-                        `% identity`, 0)),
-    Gene = Subject)
-  res <- bind_rows(bind_rows(short_res, long_res), faea_res)
+  
   pivoted_res <- pivot_wider(res[, c("File", "Gene", "Presence")],
                              names_from = Gene, values_from = Presence, values_fill = 0)
   if("NA" %in% colnames(pivoted_res)) {
