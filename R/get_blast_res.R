@@ -71,31 +71,33 @@ get_blast_res <- function(input_file_list, nt = 1, blast_dir = Sys.which("blastn
 do_blast_single <- function(input_file, blast_dir = Sys.which("blastn")) {
   validate_input_file(input_file)
   db_path <- paste0(normalizePath(system.file(package = "adhesiomeR")), "/db/adhesins")
+  input_file_name <- last(strsplit(input_file, "/")[[1]])
+  print(paste0(gsub(" ", "\\ ", input_file, fixed = TRUE)))
+  cat(gsub(" ", "\\ ", input_file, fixed = TRUE))
   if(blast_dir == "") {
     stop("It seems that you do not have BLAST installed. To be able to use adhesiomeR,
     you should install standalone BLAST. If you have installed BLAST and still
     see this message, please use 'blast_dir' argument to provide a proper path to 
     the BLAST directory in which 'blastn' executable is located.")
   } else if(blast_dir == Sys.which("blastn")) {
-    system(paste0(blast_dir, " -db ", db_path, " -query ", input_file, " -out ", input_file, ".blast -outfmt 6"))
+    system(paste0(blast_dir, " -db ", db_path, " -query ", gsub(" ", "\\ ", input_file, fixed = TRUE), " -out ", gsub(" ", "\\ ", input_file_name, fixed = TRUE), ".blast -outfmt 6"))
   } else {
     if(grepl("/$", blast_dir)) blast_dir <- gsub("/$", "", blast_dir)
-    tryCatch(system(paste0(blast_dir, "/blastn -db ", db_path, " -query ", input_file, " -out ", input_file, ".blast -outfmt 6")),
+    tryCatch(system(paste0(blast_dir, "/blastn -db ", db_path, " -query ", gsub(" ", "\\ ", input_file, fixed = TRUE), " -out ", gsub(" ", "\\ ", input_file_name, fixed = TRUE), ".blast -outfmt 6")),
              warning = function(w) {
                msg <- conditionMessage(w)
                if(msg == "error in running command") message("Please check if the BLAST directory path you provided is correct.")
              })
   }
-  name <- last(strsplit(input_file, "/")[[1]])
   res <- tryCatch(
-    read.delim(paste0(input_file, ".blast"), header = FALSE), 
+    read.delim(paste0(input_file_name, ".blast"), header = FALSE), 
     error = function(e) {
       msg <- conditionMessage(e)
       if(msg == "no lines available in input") as.data.frame(matrix(nrow = 1, ncol = 12))
     })
   colnames(res) <- c("Query", "Subject", "% identity", "Alignment length", "Mismatches",
                      "Gap opens", "Query start", "Query end", "Subject start", "Subject end", "Evalue", "Bit score")
-  file.remove(paste0(input_file, ".blast"))
-  mutate(res, File = name)
+  file.remove(paste0(input_file_name, ".blast"))
+  mutate(res, File = input_file_name)
 }
 

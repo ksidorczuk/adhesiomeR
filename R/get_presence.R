@@ -16,6 +16,7 @@
 #' copies should be counted. An occurence of gene is considered a separate
 #' copy if its location do not overlap with other hit to the same gene.
 #' @param identity identity percent
+#' @param n_threads number of threads
 #' @return a data frame of gene presence/absence. The first column contains
 #' the names of input files and the following correspond to analysed genes.
 #' Presence of a gene is indicated by 1, whereas absence by 0. In case of
@@ -25,7 +26,7 @@
 #' @importFrom pbapply pblapply
 #' @importFrom stats aggregate
 #' @export
-get_presence_table <- function(blast_res, add_missing = TRUE, count_copies = FALSE, identity = 75, n_threads) {
+get_presence_table <- function(blast_res, add_missing = TRUE, count_copies = FALSE, identity = 75, n_threads = 1) {
   problematic_genes <- adhesiomeR::problematic_genes
   nonproblematic_genes <- adhesiomeR::adhesins_df[["Gene"]][which(!(adhesiomeR::adhesins_df[["Gene"]] %in% unlist(problematic_genes)))]
   len_groups <- adhesiomeR::len_groups
@@ -64,6 +65,13 @@ get_presence_table <- function(blast_res, add_missing = TRUE, count_copies = FAL
     aggregate(. ~ File, data = all_res, FUN = sum)
   }
   mutate(aggregated_res, File = as.character(File))
+  # Check for files without found genes
+  files_to_add <- unique(blast_res[["File"]])[which(!(unique(blast_res[["File"]]) %in% unique(aggregated_res[["File"]])))]
+  if(length(files_to_add) > 0) {
+    cbind(aggregated_res, setNames(lapply(files_to_add, function(x) x = 0), files_to_add))
+  } else {
+    aggregated_res
+  }
 }
 
 
