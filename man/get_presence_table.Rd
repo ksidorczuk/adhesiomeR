@@ -8,7 +8,8 @@ get_presence_table(
   blast_res,
   add_missing = TRUE,
   count_copies = FALSE,
-  identity = 75
+  identity = 75,
+  n_threads = 1
 )
 }
 \arguments{
@@ -22,7 +23,10 @@ in the resulting table, even if they were not found in any genome.}
 copies should be counted. An occurence of gene is considered a separate
 copy if its location do not overlap with other hit to the same gene.}
 
-\item{identity}{identity percent}
+\item{identity}{identity percent threshold}
+
+\item{n_threads}{number of threads for parallel processing. Default is one. 
+The maximum number of threads is determined by \code{\link[parallel]{detectCores}}.}
 }
 \value{
 a data frame of gene presence/absence. The first column contains
@@ -36,7 +40,5 @@ based on results of the BLAST search. Each row corresponds to one input file
 and each column to one gene. Presence of a given gene is indicated as a 1, 
 whereas absence as a 0. You can modify thresholds used to consider a gene
 as present using \code{identity_threshold} and \code{evalue_threshold} 
-arguments. By default, gene is considered to be present when it shares
-over 70% of identity with a subject sequence and has E-value lower than
-1e-50.
+arguments.
 }

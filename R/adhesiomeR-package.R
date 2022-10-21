@@ -18,3 +18,7 @@ NULL
 
 globalVariables(c("adhesins_df", "i", "Subject", "System", "Presence", "File", 
                   "Gene", "% identity", "gene_percentage", "Evalue", "Percentage of present genes"))
+
+.onAttach <- function(libname = find.package("adhesiomeR"), pkgname = "adhesiomeR") {
+  options(dplyr.summarise.inform = FALSE)
+}

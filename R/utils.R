@@ -1,3 +1,8 @@
+#' Validate input file
+#' 
+#' Checks input files for fasta format.
+#' 
+#' @param input_file path to input file
 #' @export
 #' @noRd
 validate_input_file <- function(input_file) {
@@ -9,10 +14,17 @@ validate_input_file <- function(input_file) {
   if(sum(grepl("^>", x)) == 0) stop("Input file has to be in a FASTA format.")
 }
 
+#' Add missing genes
+#' 
+#' Adds genes that were not found in any file to the presence table
+#' 
+#' @param type specifies type of added genes. All adds single genes,
+#' grouped considers genes with the most similar ones grouped together.
 #' @importFrom stats setNames
 #' @export
 #' @noRd
 add_missing_genes <- function(results, type = "all") {
+  if(!(type) %in% c("all", "grouped")) stop("Type must be 'all' or 'grouped'!")
   if(type == "grouped") {
     missing <- unique(adhesins_df_grouped[["Gene"]])[which(!(unique(adhesins_df_grouped[["Gene"]]) %in% colnames(results)))]
   } else {
@@ -140,6 +152,13 @@ plot_clustering <- function(clustering_plot_dat, show_labels = TRUE, pathotypes 
   }
 }
 
+#' Check gene locations
+#' 
+#' Checks if genes are located in the same region by comparing start
+#' and end positions of the alignments. Genes are considered to be
+#' located in the same region when their start or end position
+#' overlap or are located within a close proximity (length equal to
+#' 10% of the longest alignment for analysed gene). 
 #' @importFrom dplyr between mutate
 #' @export
 #' @noRd
@@ -151,77 +170,110 @@ check_locations <- function(x) {
          same_location = ifelse(between(`Query start`, start, end) | between(`Query end`, start, end), TRUE, FALSE))
 }
 
-#' 
-#'
-get_presence <-  function(blast_res, subjects, evalue, identity) {
-  mutate(
-    summarise(
-      group_by(
-        filter(
-          blast_res, Subject %in% subjects),
-        File, Subject),
-      Presence = ifelse(any(`% identity` > identity & Evalue < evalue), 
-                        `% identity`, 0)),
-    Gene = Subject)
-}
 
-#' Get presence from BLAST
+
+#' Get gene presence for localizations
 #' 
-#' This function creates a presence/absence table of genes in analysed genomes
-#' based on results of the BLAST search. Each row corresponds to one input file
-#' and each column to one gene. Presence of a given gene is indicated as a 1, 
-#' whereas absence as a 0. You can modify thresholds used to consider a gene
-#' as present using \code{identity_threshold} and \code{evalue_threshold} 
-#' arguments. By default, gene is considered to be present when it shares
-#' over 70% of identity with a subject sequence and has E-value lower than
-#' 1e-50. 
+#' This function translates BLAST search results into gene presence.
+#' It considers gene localization and copies. For problematic genes it 
+#' performs decision between them based on the identity percent. 
 #' @param blast_res blast results obtained with \code{\link{get_blast_res}}
-#' @param identity blast identity threshold
-#' @param add_missing \code{logical} indicating if genes not found by BLAST 
-#' should be added. By default \code{TRUE}, meaning that all genes are shown 
-#' in the resulting table, even if they were not found in any genome. 
+#' @param type if \code{problematic} (default) decides between genes based
+#' on the identity percent, else no selection is made.
+#' @param gene_set set of genes to consider
 #' @return a data frame of gene presence/absence. The first column contains
 #' the names of input files and the following correspond to analysed genes.
 #' Presence of a gene is indicated by 1, whereas absence by 0. 
-#' @importFrom dplyr group_by summarise mutate filter ungroup
+#' @importFrom dplyr mutate filter select bind_rows
+#' @export
+#' @noRd
+get_gene_presence_for_localizations <- function(blast_res, type = "problematic", gene_set) {
+  x <- mutate(
+    filter(blast_res, Subject %in% gene_set), 
+    same_location = FALSE)
+  full_res <- data.frame()
+  bind_rows(
+    lapply(unique(x[["File"]]), function(ith_file) {
+      while(any(x[["same_location"]] == FALSE)) {
+        y <- filter(x, File == ith_file)
+        locations <- check_locations(y)
+        
+        if(type == "problematic") {
+          # Decide between similar genes
+          res <- decide_between_problematic_genes(
+            get_presence_from_blast(
+              select(
+                filter(locations, same_location == TRUE),
+                -same_location), type = "identity"),
+            gene_set)
+          x <- filter(locations, same_location == FALSE)
+          full_res <- bind_rows(full_res, res)
+          
+        } else {
+          # Process the rest normally
+          res <- get_presence_from_blast(
+            select(
+              filter(locations, same_location == TRUE),
+              -same_location))
+          x <- filter(locations, same_location == FALSE)
+          full_res <- bind_rows(full_res, res)
+        }
+      }
+      full_res
+    })
+  )
+}
+
+
+
+#' Decide between problematic genes
+#' 
+#' This function performs decision between a group of problematic genes
+#' by selecting the hit with the highest identity percent to genes from the
+#' group.
+#' @param pivoted_res a data frame with identities from blast search,
+#' obtained by \code{\link{get_presence_from_blast}} using \code{identity}
+#' as type. 
+#' @param problematic_genes set of problematic genes to consider.
+#' @return a data frame of gene presence/absence modified to consider
+#' only the best hit (with the highest identity) to one of the genes
+#' from the considered group.
+#' @importFrom dplyr mutate across
+#' @export
+#' @noRd
+decide_between_problematic_genes <- function(pivoted_res, problematic_genes) {
+  y <- data.frame(pivoted_res[, which(!(colnames(pivoted_res) %in% problematic_genes))],
+                  t(apply(pivoted_res[, which(colnames(pivoted_res) %in% problematic_genes)], 1, 
+                          function(x) replace(x, x != max(x, na.rm = TRUE), 0))),
+                  check.names = FALSE)
+  mutate(y, across(2:ncol(y), function(x) ifelse(x > 0, 1, 0)))
+}
+
+
+#' Get presence or identity from BLAST
+#' 
+#' This function summarises BLAST results and returns presence or
+#' maximum identity for a given query.
+#' @param blast_res blast results obtained with \code{\link{get_blast_res}}
+#' @param type \code{"presence"} or \code{"identity"}
+#' @return a data frame of gene presence/absence or the highest identity 
+#' percent value for a given gene.
+#' @importFrom dplyr mutate summarise group_by ungroup
 #' @importFrom tidyr pivot_wider
 #' @export
-get_presence_from_blast <- function(blast_res, add_missing = TRUE, identity = 75) {
-  gene_groups <- adhesiomeR::gene_groups
-  
+#' @noRd
+get_presence_from_blast <- function(blast_res, type = "presence") {
+  if(!(type %in% c("presence", "identity"))) stop("Type must be 'presence' or 'identity'!")
   res <- mutate(
     summarise(
       group_by(blast_res, File, Subject),
-      Presence = 1),
+      Presence = ifelse(type == "presence", 1, max(`% identity`))),
     Gene = Subject)
   
   pivoted_res <- pivot_wider(res[, c("File", "Gene", "Presence")],
                              names_from = Gene, values_from = Presence, values_fill = 0)
-  if("NA" %in% colnames(pivoted_res)) {
-    pivoted_res <- pivoted_res[, which(colnames(pivoted_res) != "NA")]
-  }
+  
   # Check for genes that were not found
-  pivoted_res <- ungroup(add_missing_genes(pivoted_res))
-  
-  # Decide between similar genes
-  y <- pivoted_res
-  for (i in problematic_genes) {
-    y <- data.frame(y[, which(!(colnames(y) %in% i))],
-                    t(apply(y[, which(colnames(y) %in% i)], 1, 
-                            function(x) replace(x, x != max(x, na.rm = TRUE), 0))),
-                    check.names = FALSE)
-  }
-  y <- mutate(y, across(2:ncol(y), function(x) ifelse(x > 0, 1, 0)))
-  
-  # Group the most similar genes
-  group_res <- do.call(cbind, lapply(names(gene_groups), function(ith_group) {
-    x <- select(y, gene_groups[[ith_group]])
-    setNames(data.frame(group = ifelse(rowSums(x) > 0, 1, 0)), ith_group)
-  }))
-  updated_res <- cbind(y[, colnames(y)[which(!(colnames(y) %in% unlist(unname(gene_groups))))]],
-                       group_res)
-  if(add_missing == FALSE) {
-    updated_res <- updated_res[, c(TRUE, colSums(updated_res[, 2:ncol(updated_res)]) > 0)]
-  }
-  updated_res
+  ungroup(add_missing_genes(pivoted_res))
 }
+

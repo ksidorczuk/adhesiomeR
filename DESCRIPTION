@@ -17,9 +17,8 @@ Depends:
     R (>= 3.5.0)
 Imports:
     dplyr,
-    doSNOW,
-    foreach,
-    pbapply,
+    future,
+    future.apply,
     ggplot2,
     tidyr,
     ggrepel,

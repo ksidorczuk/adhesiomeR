@@ -16,10 +16,9 @@
 #' bit score (for detailed information about those outputs, please see BLAST
 #' documentation), as well as name of a file that was used as an input.
 #' @seealso do_blast_single
-#' @importFrom pbapply pblapply
 #' @importFrom parallel makePSOCKcluster stopCluster detectCores
-#' @importFrom doSNOW registerDoSNOW
-#' @importFrom foreach foreach %dopar%
+#' @importFrom future.apply future_apply
+#' @importFrom future makeClusterPSOCK plan
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @importFrom dplyr mutate
 #' @export
@@ -32,21 +31,22 @@ get_blast_res <- function(input_file_list, nt = 1, blast_dir = Sys.which("blastn
     stop("The number of threads is incorrect. Please make sure that you entered a valid number.")
   }
   
-  parallel_cluster <- makePSOCKcluster(nt)
-  #registerDoParallel(parallel_cluster)
-  registerDoSNOW(parallel_cluster)
-  pb <- txtProgressBar(max = length(input_file_list), style = 3)
-  progress <- function(n) setTxtProgressBar(pb, n)
-  opts <- list(progress = progress)
-
-  res <- foreach(i = 1:length(input_file_list), .combine = rbind, .packages = c('dplyr', 'adhesiomeR', 'biogram'), 
-                 .options.snow=opts) %dopar% {
-    cat(paste0("Processing ", input_file_list[[i]], ". (File ", i, "/", length(input_file_list), " files)"))
-    do_blast_single(input_file_list[[i]], blast_dir)
-  }
+  parallel_cluster <- makeClusterPSOCK(nt)
+  plan(cluster, workers = parallel_cluster, gc = TRUE)
+  
+  handlers(handler_progress(format="[:bar] :percent :eta :message"))
+  
+  with_progress({ 
+    p <- progressor(along = 1:length(input_file_list))
+    res <- future_lapply(1:length(input_file_list), function(i) {
+      p()
+      do_blast_single(input_file_list[[i]], blast_dir)
+    }) %>% bind_rows()
+  }) 
+  
   stopCluster(parallel_cluster)
   mutate(res, Subject = sapply(Subject, function(i) strsplit(i, "~~~")[[1]][2]))
-    
+  
 }
 
 
@@ -72,8 +72,6 @@ do_blast_single <- function(input_file, blast_dir = Sys.which("blastn")) {
   validate_input_file(input_file)
   db_path <- paste0(normalizePath(system.file(package = "adhesiomeR")), "/db/adhesins")
   input_file_name <- last(strsplit(input_file, "/")[[1]])
-  print(paste0(gsub(" ", "\\ ", input_file, fixed = TRUE)))
-  cat(gsub(" ", "\\ ", input_file, fixed = TRUE))
   if(blast_dir == "") {
     stop("It seems that you do not have BLAST installed. To be able to use adhesiomeR,
     you should install standalone BLAST. If you have installed BLAST and still

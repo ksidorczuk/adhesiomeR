@@ -5,9 +5,7 @@
 #' and each column to one gene. Presence of a given gene is indicated as a 1, 
 #' whereas absence as a 0. You can modify thresholds used to consider a gene
 #' as present using \code{identity_threshold} and \code{evalue_threshold} 
-#' arguments. By default, gene is considered to be present when it shares
-#' over 70% of identity with a subject sequence and has E-value lower than
-#' 1e-50. 
+#' arguments. 
 #' @param blast_res blast results obtained with \code{\link{get_blast_res}}
 #' @param add_missing \code{logical} indicating if genes not found by BLAST 
 #' should be added. By default \code{TRUE}, meaning that all genes are shown 
@@ -15,62 +13,78 @@
 #' @param count_copies \code{logical} indicating if occurences of gene 
 #' copies should be counted. An occurence of gene is considered a separate
 #' copy if its location do not overlap with other hit to the same gene.
-#' @param identity identity percent
-#' @param n_threads number of threads
+#' @param identity identity percent threshold
+#' @param n_threads number of threads for parallel processing. Default is one. 
+#' The maximum number of threads is determined by \code{\link[parallel]{detectCores}}.
 #' @return a data frame of gene presence/absence. The first column contains
 #' the names of input files and the following correspond to analysed genes.
 #' Presence of a gene is indicated by 1, whereas absence by 0. In case of
 #' copy counts, numbers of gene copies is presented.
 #' @importFrom dplyr group_by summarise mutate filter ungroup bind_rows select
 #' @importFrom tidyr pivot_wider
-#' @importFrom pbapply pblapply
-#' @importFrom stats aggregate
+#' @importFrom stats aggregate setNames
+#' @importFrom future.apply future_apply
+#' @importFrom future makeClusterPSOCK plan
+#' @importFrom parallel stopCluster detectCores
 #' @export
 get_presence_table <- function(blast_res, add_missing = TRUE, count_copies = FALSE, identity = 75, n_threads = 1) {
+  max_nt <- detectCores(logical = FALSE)
+  if(nt > max_nt) {
+    stop(paste0("The number of threads you specified is too large. The maximum number of threads determined by parallel::detectCores function is: ", detectCores(logical = FALSE), ". 
+  Please select a value between 1 and ", detectCores(logical = FALSE), "."))
+  } else if (!(nt %in% 1L:detectCores(logical = FALSE)))  {
+    stop("The number of threads is incorrect. Please make sure that you entered a valid number.")
+  }
+  
   problematic_genes <- adhesiomeR::problematic_genes
   nonproblematic_genes <- adhesiomeR::adhesins_df[["Gene"]][which(!(adhesiomeR::adhesins_df[["Gene"]] %in% unlist(problematic_genes)))]
   len_groups <- adhesiomeR::len_groups
+  gene_groups <- adhesiomeR::gene_groups
   
   short_res <- filter(blast_res, Subject %in% len_groups[["short"]], Evalue < 10^-35, `% identity` > identity)
   medium_res <- filter(blast_res, Subject %in% len_groups[["medium"]], Evalue < 10^-70, `% identity` > identity)
   long_res <- filter(blast_res, Subject %in% len_groups[["long"]], Evalue < 10^-100, `% identity` > identity)
-  blast_res <- bind_rows(bind_rows(short_res, medium_res), long_res)
-  full_res <- data.frame()
+  all_blast_res <- bind_rows(bind_rows(short_res, medium_res), long_res)
+  
+  parallel_cluster <- makeClusterPSOCK(nt)
+  plan(cluster, workers = parallel_cluster, gc = TRUE)
+  
   all_res <- bind_rows(
-    pblapply(c(problematic_genes, nonproblematic_genes), cl = n_threads, function(ith_set) {
-      x <- mutate(
-        filter(blast_res, Subject %in% ith_set), 
-        same_location = FALSE)
-      bind_rows(
-        lapply(unique(x[["File"]]), function(ith_file) {
-          while(any(x[["same_location"]] == FALSE)) {
-            y <- filter(x, File == ith_file)
-            locations <- check_locations(y)
-            res <- get_presence_from_blast(
-              select(
-                filter(locations, same_location == TRUE),
-                -same_location), identity = identity)
-            x <- filter(locations, same_location == FALSE)
-            full_res <- bind_rows(full_res, res)
-          }
-          full_res
-        })
-      )
+    future_lapply(problematic_genes, function(ith_set) {
+      get_gene_presence_for_localizations(all_blast_res, "problematic", ith_set)
+    }),
+    future_lapply(nonproblematic_genes, function(ith_gene) {
+      get_gene_presence_for_localizations(all_blast_res, "nonproblematic", ith_gene)
     })
   ) 
-  all_res[["File"]] <- as.factor(all_res[["File"]])
-  aggregated_res <- if(count_copies == FALSE) {
-    aggregate(. ~ File, data = all_res, FUN = function(i) ifelse(sum(i) > 0, 1, 0))
-  } else {
-    aggregate(. ~ File, data = all_res, FUN = sum)
+  stopCluster(parallel_cluster)
+  # Group the most similar genes
+  group_res <- do.call(cbind, lapply(names(gene_groups), function(ith_group) {
+    x <- select(all_res, gene_groups[[ith_group]])
+    setNames(data.frame(group = ifelse(rowSums(x) > 0, rowSums(x), 0)), ith_group)
+  }))
+  updated_res <- cbind(all_res[, colnames(all_res)[which(!(colnames(all_res) %in% unlist(unname(gene_groups))))]],
+                       group_res)
+  
+  if(add_missing == FALSE) {
+    updated_res <- updated_res[, c(TRUE, colSums(updated_res[, 2:ncol(updated_res)]) > 0)]
   }
-  mutate(aggregated_res, File = as.character(File))
-  # Check for files without found genes
-  files_to_add <- unique(blast_res[["File"]])[which(!(unique(blast_res[["File"]]) %in% unique(aggregated_res[["File"]])))]
-  if(length(files_to_add) > 0) {
-    cbind(aggregated_res, setNames(lapply(files_to_add, function(x) x = 0), files_to_add))
+  
+  # Aggregate presence or copy counts
+  updated_res[["File"]] <- as.factor(updated_res[["File"]])
+  aggregated_res <- if(count_copies == FALSE) {
+    aggregate(. ~ File, data = updated_res, FUN = function(i) ifelse(sum(i) > 0, 1, 0))
   } else {
-    aggregated_res
+    aggregate(. ~ File, data = updated_res, FUN = sum)
+  }
+  final_res <- mutate(aggregated_res, File = as.character(File))
+  
+  # Check for files without found genes
+  files_to_add <- unique(blast_res[["File"]])[which(!(unique(blast_res[["File"]]) %in% unique(final_res[["File"]])))]
+  if(length(files_to_add) > 0) {
+    cbind(final_res, setNames(lapply(files_to_add, function(x) x = 0), files_to_add))
+  } else {
+    final_res
   }
 }
 
