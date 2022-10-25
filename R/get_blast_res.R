@@ -21,6 +21,7 @@
 #' @importFrom future makeClusterPSOCK plan
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @importFrom dplyr mutate
+#' @importFrom progressr with_progress progressor handlers handler_progress
 #' @export
 get_blast_res <- function(input_file_list, nt = 1, blast_dir = Sys.which("blastn")) {
   max_nt <- detectCores(logical = FALSE)
@@ -31,20 +32,29 @@ get_blast_res <- function(input_file_list, nt = 1, blast_dir = Sys.which("blastn
     stop("The number of threads is incorrect. Please make sure that you entered a valid number.")
   }
   
-  parallel_cluster <- makeClusterPSOCK(nt)
-  plan(cluster, workers = parallel_cluster, gc = TRUE)
-  
-  handlers(handler_progress(format="[:bar] :percent :eta :message"))
-  
-  with_progress({ 
-    p <- progressor(along = 1:length(input_file_list))
-    res <- future_lapply(1:length(input_file_list), function(i) {
-      p()
-      do_blast_single(input_file_list[[i]], blast_dir)
-    }) %>% bind_rows()
-  }) 
-  
-  stopCluster(parallel_cluster)
+  if(nt > 1) {
+    plan(multisession, workers = nt, gc = TRUE)
+    
+    handlers(handler_progress(format="[:bar] :percent :eta :message"))
+    
+    with_progress({ 
+      p <- progressor(along = 1:length(input_file_list))
+      res <- future_lapply(1:length(input_file_list), function(i) {
+        p()
+        do_blast_single(input_file_list[[i]], blast_dir)
+      }) %>% bind_rows()
+    }) 
+    plan(sequential)
+  } else {
+    with_progress({ 
+      p <- progressor(along = 1:length(input_file_list))
+      res <- lapply(1:length(input_file_list), function(i) {
+        p()
+        do_blast_single(input_file_list[[i]], blast_dir)
+      }) %>% bind_rows()
+    }) 
+  }
+
   mutate(res, Subject = sapply(Subject, function(i) strsplit(i, "~~~")[[1]][2]))
   
 }

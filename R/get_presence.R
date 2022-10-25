@@ -26,13 +26,14 @@
 #' @importFrom future.apply future_apply
 #' @importFrom future makeClusterPSOCK plan
 #' @importFrom parallel stopCluster detectCores
+#' @importFrom progressr with_progress progressor handlers handler_progress
 #' @export
 get_presence_table <- function(blast_res, add_missing = TRUE, count_copies = FALSE, identity = 75, n_threads = 1) {
   max_nt <- detectCores(logical = FALSE)
-  if(nt > max_nt) {
+  if(n_threads > max_nt) {
     stop(paste0("The number of threads you specified is too large. The maximum number of threads determined by parallel::detectCores function is: ", detectCores(logical = FALSE), ". 
   Please select a value between 1 and ", detectCores(logical = FALSE), "."))
-  } else if (!(nt %in% 1L:detectCores(logical = FALSE)))  {
+  } else if (!(n_threads %in% 1L:detectCores(logical = FALSE)))  {
     stop("The number of threads is incorrect. Please make sure that you entered a valid number.")
   }
   
@@ -46,18 +47,29 @@ get_presence_table <- function(blast_res, add_missing = TRUE, count_copies = FAL
   long_res <- filter(blast_res, Subject %in% len_groups[["long"]], Evalue < 10^-100, `% identity` > identity)
   all_blast_res <- bind_rows(bind_rows(short_res, medium_res), long_res)
   
-  parallel_cluster <- makeClusterPSOCK(nt)
-  plan(cluster, workers = parallel_cluster, gc = TRUE)
-  
-  all_res <- bind_rows(
-    future_lapply(problematic_genes, function(ith_set) {
-      get_gene_presence_for_localizations(all_blast_res, "problematic", ith_set)
-    }),
-    future_lapply(nonproblematic_genes, function(ith_gene) {
-      get_gene_presence_for_localizations(all_blast_res, "nonproblematic", ith_gene)
-    })
-  ) 
-  stopCluster(parallel_cluster)
+  if(n_threads > 1) {
+    plan(multisession, workers = n_threads, gc = TRUE)
+    
+    all_res <- bind_rows(
+      future_lapply(problematic_genes, function(ith_set) {
+        get_gene_presence_for_localizations(all_blast_res, "problematic", ith_set)
+      }),
+      future_lapply(nonproblematic_genes, function(ith_gene) {
+        get_gene_presence_for_localizations(all_blast_res, "nonproblematic", ith_gene)
+      })
+    ) 
+    plan(sequential)
+  } else {
+    all_res <- bind_rows(
+      lapply(problematic_genes, function(ith_set) {
+        get_gene_presence_for_localizations(all_blast_res, "problematic", ith_set)
+      }),
+      lapply(nonproblematic_genes, function(ith_gene) {
+        get_gene_presence_for_localizations(all_blast_res, "nonproblematic", ith_gene)
+      })
+    ) 
+  }
+
   # Group the most similar genes
   group_res <- do.call(cbind, lapply(names(gene_groups), function(ith_group) {
     x <- select(all_res, gene_groups[[ith_group]])
