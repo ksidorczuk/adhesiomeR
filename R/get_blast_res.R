@@ -17,7 +17,7 @@
 #' documentation), as well as name of a file that was used as an input.
 #' @seealso do_blast_single
 #' @importFrom parallel makePSOCKcluster stopCluster detectCores
-#' @importFrom future.apply future_apply
+#' @importFrom future.apply future_lapply
 #' @importFrom future makeClusterPSOCK plan
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @importFrom dplyr mutate
@@ -39,22 +39,26 @@ get_blast_res <- function(input_file_list, nt = 1, blast_dir = Sys.which("blastn
     
     with_progress({ 
       p <- progressor(along = 1:length(input_file_list))
-      res <- future_lapply(1:length(input_file_list), function(i) {
-        p()
-        do_blast_single(input_file_list[[i]], blast_dir)
-      }) %>% bind_rows()
+      res <- bind_rows(
+        future_lapply(1:length(input_file_list), function(i) {
+          p()
+          do_blast_single(input_file_list[[i]], blast_dir)
+        })
+      )
     }) 
     plan(sequential)
   } else {
     with_progress({ 
       p <- progressor(along = 1:length(input_file_list))
-      res <- lapply(1:length(input_file_list), function(i) {
-        p()
-        do_blast_single(input_file_list[[i]], blast_dir)
-      }) %>% bind_rows()
+      res <- bind_rows(
+        lapply(1:length(input_file_list), function(i) {
+          p()
+          do_blast_single(input_file_list[[i]], blast_dir)
+        })
+      )
     }) 
   }
-
+  
   mutate(res, Subject = sapply(Subject, function(i) strsplit(i, "~~~")[[1]][2]))
   
 }

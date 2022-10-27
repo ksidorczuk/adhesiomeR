@@ -23,7 +23,8 @@ Imports:
     tidyr,
     ggrepel,
     rmarkdown,
-    shiny
+    shiny,
+    progressr
 Suggests:
 Repository: CRAN
 Language: en-US
