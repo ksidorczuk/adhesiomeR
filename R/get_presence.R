@@ -24,7 +24,7 @@
 #' @importFrom tidyr pivot_wider
 #' @importFrom stats aggregate setNames
 #' @importFrom future.apply future_apply
-#' @importFrom future makeClusterPSOCK plan
+#' @importFrom future makeClusterPSOCK plan multisession sequential
 #' @importFrom parallel stopCluster detectCores
 #' @importFrom progressr with_progress progressor handlers handler_progress
 #' @export
