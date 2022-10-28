@@ -69,7 +69,7 @@ get_presence_table <- function(blast_res, add_missing = TRUE, count_copies = FAL
       })
     ) 
   }
-
+  
   # Group the most similar genes
   group_res <- do.call(cbind, lapply(names(gene_groups), function(ith_group) {
     x <- select(all_res, gene_groups[[ith_group]])
@@ -94,7 +94,11 @@ get_presence_table <- function(blast_res, add_missing = TRUE, count_copies = FAL
   # Check for files without found genes
   files_to_add <- unique(blast_res[["File"]])[which(!(unique(blast_res[["File"]]) %in% unique(final_res[["File"]])))]
   if(length(files_to_add) > 0) {
-    cbind(final_res, setNames(lapply(files_to_add, function(x) x = 0), files_to_add))
+    rbind(final_res, 
+          setNames(
+          cbind(data.frame("File" = files_to_add),
+                data.frame(matrix(0, nrow = length(files_to_add), ncol = ncol(final_res)-1))),
+          colnames(final_res)))
   } else {
     final_res
   }
@@ -123,9 +127,9 @@ cluster_data <- function(df, data_to_cluster, var_name) {
 #' @importFrom tidyr pivot_longer
 #' @noRd
 #' @export
-get_presence_plot_data <- function(presence_table, systems = unique(adhesins_df[["System"]])) {
+get_presence_plot_data <- function(presence_table, systems = unique(adhesins_df_grouped[["System"]])) {
   
-  selected_genes <- unique(filter(adhesins_df, System %in% systems)[["Gene"]])
+  selected_genes <- unique(filter(adhesins_df_grouped, System %in% systems)[["Gene"]])
   
   plot_dat <- filter(
     pivot_longer(presence_table, 2:ncol(presence_table), names_to = "Gene", values_to = "Presence"),

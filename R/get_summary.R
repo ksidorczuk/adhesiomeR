@@ -11,7 +11,7 @@
 #' @return a data frame with systems presence indicated by a percentage of
 #' found genes. First column contains names of the input files and the following
 #' correspond to analysed systems. 
-#' @importFrom dplyr left_join group_by summarise filter n case_when select mutate
+#' @importFrom dplyr left_join group_by summarise case_when select mutate
 #' @importFrom tidyr pivot_longer pivot_wider
 #' @export
 get_summary_table <- function(presence_table, hide_absent = FALSE) {
@@ -37,54 +37,54 @@ get_summary_table <- function(presence_table, hide_absent = FALSE) {
   updated_res <- mutate(
     pivoted_res,
     Dr = ifelse(`Afa-I` == "Present" | `Afa-III` == "Present" | F1845 == "Present",
-                         "Absent", Dr),
+                "Absent", Dr),
     `Afa-I` = ifelse(`Afa-I` == "Partial" & `Afa-III` == "Partial" & F1845 == "Partial" & Dr == "Present",
-                              "Absent", `Afa-I`),
+                     "Absent", `Afa-I`),
     `Afa-III` = ifelse(`Afa-I` == "Partial" & `Afa-III` == "Partial" & F1845 == "Partial" & Dr == "Present",
-                                "Absent", `Afa-III`),
+                       "Absent", `Afa-III`),
     F1845 = ifelse(`Afa-I` == "Partial" & `Afa-III` == "Partial" & F1845 == "Partial" & Dr == "Present",
-                            "Absent", F1845),
+                   "Absent", F1845),
     Intimin = ifelse(Intimin == "Partial" & eae == 0, "Absent", Intimin),
     CS1 = ifelse(CS17 == "Present" | CS19 == "Present" | PCF071 == "Present",
-                          "Absent", CS1),
+                 "Absent", CS1),
     CS17 = ifelse(CS1 == "Present" | CS19 == "Present" | PCF071 == "Present",
-                           "Absent", CS17),
+                  "Absent", CS17),
     CS19 = ifelse(CS17 == "Present" | CS1 == "Present" | PCF071 == "Present",
-                           "Absent", CS19),
+                  "Absent", CS19),
     PCF071 = ifelse(CS17 == "Present" | CS19 == "Present" | CS1 == "Present",
-                             "Absent", PCF071),
+                    "Absent", PCF071),
     `CFA/I` = ifelse(CS14 == "Present" | CS4 == "Present",
-                              "Absent", `CFA/I`),
+                     "Absent", `CFA/I`),
     CS14 = ifelse(`CFA/I` == "Present" | CS4 == "Present",
-                           "Absent", CS14),
+                  "Absent", CS14),
     CS4 = ifelse(`CFA/I` == "Present" | CS14 == "Present",
-                          "Absent", CS4),
+                 "Absent", CS4),
     CS20 = ifelse(CS28A == "Present" | CS28B == "Present",
-                           "Absent", CS20),
+                  "Absent", CS20),
     CS28A = ifelse(CS20 == "Present" | CS28B == "Present",
-                            "Absent", CS28A),
+                   "Absent", CS28A),
     CS28B = ifelse(CS28A == "Present" | CS20 == "Present",
-                            "Absent", CS28B),
+                   "Absent", CS28B),
     F17a = ifelse(F17b == "Present" | F17d == "Present",
-                           "Absent", F17a),
+                  "Absent", F17a),
     F17b = ifelse(F17a == "Present" | F17d == "Present",
-                           "Absent", F17b),
+                  "Absent", F17b),
     F17d = ifelse(F17b == "Present" | F17a == "Present",
-                           "Absent", F17d),
+                  "Absent", F17d),
     CS31A = ifelse(F41 == "Present" | `F4/K88` == "Present" | CS23 == "Present" | CS13 == "Present",
-                            "Absent", CS31A),
+                   "Absent", CS31A),
     F41 = ifelse(CS31A == "Present" | `F4/K88` == "Present" | CS23 == "Present" | CS13 == "Present",
-                          "Absent", F41),
+                 "Absent", F41),
     `F4/K88` = ifelse(CS31A == "Present" | F41 == "Present" | CS23 == "Present" | CS13 == "Present",
-                          "Absent", `F4/K88`),
+                      "Absent", `F4/K88`),
     CS23 = ifelse(CS31A == "Present" | `F4/K88` == "Present" | F41 == "Present" | CS13 == "Present",
-                           "Absent", CS23),
+                  "Absent", CS23),
     CS13 = ifelse(CS31A == "Present" | `F4/K88` == "Present" | CS23 == "Present" | F41 == "Present",
-                           "Absent", CS13),
+                  "Absent", CS13),
     
     `CS27A/CS27B` = case_when((`CS27A` == "Present" | `CS27B` == "Present") | (`CS27A` == "Present" & `CS27B` == "Present" ) ~ "Present",
-                                       (`CS27A` == "Absent" & `CS27B` == "Partial") | (`CS27A` == "Partial" & `CS27B` == "Absent") ~ "Partial",
-                                       TRUE ~ "Absent"
+                              (`CS27A` == "Absent" & `CS27B` == "Partial") | (`CS27A` == "Partial" & `CS27B` == "Absent") ~ "Partial",
+                              TRUE ~ "Absent"
     )
   )
   
@@ -116,18 +116,21 @@ get_summary_table <- function(presence_table, hide_absent = FALSE) {
 #' @export
 get_summary_plot <- function(presence_table, hide_absent = FALSE, presence_col = "#e42b24", absence_col = "#85c1ff") {
   summary_dat <- get_summary_table(presence_table, hide_absent) 
-  plot_dat <- pivot_longer(summary_dat, 2:ncol(summary_dat), names_to = "System", values_to = "Percentage of present genes") 
-  
+  plot_dat <- pivot_longer(summary_dat, 2:ncol(summary_dat), names_to = "System", values_to = "Presence") 
+  plot_dat[["Presence"]] <- sapply(plot_dat[["Presence"]], function(i) case_when(i == "Absent" ~ 0,
+                                                                                 i == "Partial" ~ 0.5,
+                                                                                 i == "Present" ~ 1))
   if(nrow(presence_table) > 1) {
-    plot_dat <- cluster_data(plot_dat, summary_dat, "System")
+    plot_dat <- cluster_data(plot_dat, 
+                             pivot_wider(plot_dat, names_from = "System", values_from = "Presence"), 
+                             "System")
   }
   
-  ggplot(plot_dat, aes(x = System, y = File, fill = as.numeric(`Percentage of present genes`))) +
+  ggplot(plot_dat, aes(x = System, y = File, fill = Presence)) +
     geom_tile() +
-    scale_fill_gradient(low = absence_col, high = presence_col, name = "Percentage of present genes") +
+    scale_fill_gradient(low = absence_col, high = presence_col, name = "Presence", breaks = c(0, 0.5, 1), labels = c("Absent", "Partial", "Present")) +
     scale_x_discrete(position = "top") +
-    plot_theme()
-  
+    plot_theme() 
 }
 
 #' @importFrom tidyr pivot_longer
