@@ -28,16 +28,22 @@ shinyServer(function(input, output, session) {
                             absence_col = "#85c1ff",
                             old_files = NULL)
   
-  hide_tabs <- eventReactive(input[["blast"]], {
-    if(input[["blast"]] == 0) {
-      return(0)
-    } else {
-      return(1)
-    }
-  }, ignoreNULL = FALSE)
+  # hide_tabs <- eventReactive(input[["blast"]], {
+  #   #if(!exists(analysis_results())) {
+  #   if(input[["blast"]] == 0) {
+  #     return(0)
+  #   } else {
+  #     return(1)
+  #   }
+  # }, ignoreNULL = FALSE)
+  
+  hide_tabs <- reactiveVal(0)
+  
+  output[["hidetabs"]] <- renderText(paste0(hide_tabs()))
 
   observe({
     if(hide_tabs() == 0) {
+    #if(input[["blast"]] == 0) {
     hideTab("adhesiomer", "blast_res")
     hideTab("adhesiomer", "summary_plot")
     hideTab("adhesiomer", "all_genes")
@@ -109,14 +115,15 @@ shinyServer(function(input, output, session) {
           length(input[["seq_file"]][["name"]] != length(filters[["old_input"]][["name"]])) &
           length(input[["seq_file"]][["name"]]) <= 100)
     showModal(modalDialog(
-      title = "Running BLAST...",
+      title = "Running analysis...",
       "Please be patient - the calculations may take a few minutes.
         This window will disapear once calculations are completed.", 
       footer = NULL))
 
     res <- run_analysis(input[["seq_file"]], input[["n_threads"]], identity = filters[["thresh"]])
-    removeModal()
+    hide_tabs(1)
     filters[["old_input"]] <- input[["seq_file"]]
+    removeModal()
     res
   })
   
@@ -168,7 +175,7 @@ shinyServer(function(input, output, session) {
       get_summary_plot(presence_tab(), hide_absent = input[["systems_summary_hide_missing"]],
                        presence_col = filters[["presence_col"]],
                        absence_col = filters[["absence_col"]])
-    }, height = 200+10*nrow(summary_table()), width = 300+10*ncol(summary_table()))
+    }, height = 150+10*nrow(summary_table()), width = 300+10*ncol(summary_table()))
   })
 
   absent_systems <- reactive({
@@ -177,10 +184,12 @@ shinyServer(function(input, output, session) {
   })
 
 
-
   all_genes_plot_dat <- reactive({
-    get_presence_table(analysis_results()[[1]], add_missing = !input[["all_genes_hide_missing"]],
-                       identity = filters[["thresh"]])
+    if(input[["all_genes_hide_missing"]]) {
+      presence_tab()[c(1, which(colSums(presence_tab()[2:ncol(presence_tab())]) > 0) + 1)]
+    } else {
+      presence_tab()
+    }
   })
 
   scaling_dat <- reactive({
@@ -196,7 +205,7 @@ shinyServer(function(input, output, session) {
                         systems = filters[["systems"]],
                         presence_col = filters[["presence_col"]],
                         absence_col = filters[["absence_col"]])
-    }, height = 300+10*length(unique(scaling_dat()[["Gene"]])), width = 100+10*length(unique(scaling_dat()[["File"]])))
+    }, height = 300+10*length(unique(scaling_dat()[["Gene"]])), width = 200+10*length(unique(scaling_dat()[["File"]])))
   })
 
 

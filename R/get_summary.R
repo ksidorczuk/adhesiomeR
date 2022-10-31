@@ -11,7 +11,7 @@
 #' @return a data frame with systems presence indicated by a percentage of
 #' found genes. First column contains names of the input files and the following
 #' correspond to analysed systems. 
-#' @importFrom dplyr left_join group_by summarise case_when select mutate
+#' @importFrom dplyr left_join group_by summarise case_when select mutate n
 #' @importFrom tidyr pivot_longer pivot_wider
 #' @export
 get_summary_table <- function(presence_table, hide_absent = FALSE) {
@@ -128,7 +128,8 @@ get_summary_plot <- function(presence_table, hide_absent = FALSE, presence_col =
   
   ggplot(plot_dat, aes(x = System, y = File, fill = Presence)) +
     geom_tile() +
-    scale_fill_gradient(low = absence_col, high = presence_col, name = "Presence", breaks = c(0, 0.5, 1), labels = c("Absent", "Partial", "Present")) +
+    scale_fill_gradient(low = absence_col, high = presence_col, name = "Presence", breaks = c(0, 0.5, 1), labels = c("Absent", "Partial", "Present"),
+                        limits = c(0, 1)) +
     scale_x_discrete(position = "top") +
     plot_theme() 
 }
