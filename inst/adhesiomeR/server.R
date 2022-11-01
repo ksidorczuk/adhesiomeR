@@ -10,6 +10,8 @@ library(pander)
 library(rmarkdown)
 library(ggrepel)
 library(future.apply)
+library(gridExtra)
+library(egg)
 
 data(adhesins_df)
 data(UMAP_data)
@@ -28,29 +30,18 @@ shinyServer(function(input, output, session) {
                             absence_col = "#85c1ff",
                             old_files = NULL)
   
-  # hide_tabs <- eventReactive(input[["blast"]], {
-  #   #if(!exists(analysis_results())) {
-  #   if(input[["blast"]] == 0) {
-  #     return(0)
-  #   } else {
-  #     return(1)
-  #   }
-  # }, ignoreNULL = FALSE)
   
   hide_tabs <- reactiveVal(0)
   
-  output[["hidetabs"]] <- renderText(paste0(hide_tabs()))
-
   observe({
     if(hide_tabs() == 0) {
-    #if(input[["blast"]] == 0) {
-    hideTab("adhesiomer", "blast_res")
-    hideTab("adhesiomer", "summary_plot")
-    hideTab("adhesiomer", "all_genes")
-    hideTab("adhesiomer", "systems")
-    hideTab("adhesiomer", "summary_plot")
-    hideTab("adhesiomer", "clustering")
-    hideTab("adhesiomer", "report")
+      hideTab("adhesiomer", "blast_res")
+      hideTab("adhesiomer", "summary_plot")
+      hideTab("adhesiomer", "all_genes")
+      hideTab("adhesiomer", "systems")
+      hideTab("adhesiomer", "summary_plot")
+      hideTab("adhesiomer", "clustering")
+      hideTab("adhesiomer", "report")
     } else {
       showTab("adhesiomer", "blast_res")
       showTab("adhesiomer", "summary_plot")
@@ -117,9 +108,9 @@ shinyServer(function(input, output, session) {
     showModal(modalDialog(
       title = "Running analysis...",
       "Please be patient - the calculations may take a few minutes.
-        This window will disapear once calculations are completed.", 
+        This window will disappear once calculations are completed.", 
       footer = NULL))
-
+    
     res <- run_analysis(input[["seq_file"]], input[["n_threads"]], identity = filters[["thresh"]])
     hide_tabs(1)
     filters[["old_input"]] <- input[["seq_file"]]
@@ -130,16 +121,16 @@ shinyServer(function(input, output, session) {
   
   presence_tab <- reactive({
     #  validate(need(input[["blast"]], "Please run BLAST to see the results."))
-   analysis_results()[[2]]
-   # get_presence_table(blast_results())
+    analysis_results()[[2]]
+    # get_presence_table(blast_results())
   })
-
-
+  
+  
   presence_plot_dat <- reactive({
     validate(need(presence_tab, "Please run BLAST to see the results."))
     get_presence_plot_data(presence_tab(), filters[["systems"]])
   })
-
+  
   clustering_plot_dat <- reactive({
     get_clustering_plot_data(presence_tab())
   })
@@ -149,41 +140,42 @@ shinyServer(function(input, output, session) {
     my_DT(analysis_results()[[1]])
     #my_DT(data.frame(blast_results()))
   })
-
   
   
   output[["presence_table"]] <- renderDataTable({
-      my_DT(presence_tab())
+    my_DT(presence_tab())
   })
-
+  
   output[["systems_summary_table"]] <- renderDataTable({
     get_summary_table(presence_tab()) %>%
       my_DT()
   })
-
+  
   output[["clustering_plot"]] <- renderPlot({
-      plot_clustering(clustering_plot_dat(), show_labels = input[["clustering_labels"]], pathotypes = input[["pathotype"]])
+    plot_clustering(clustering_plot_dat(), show_labels = input[["clustering_labels"]], pathotypes = input[["pathotype"]])
   })
-
+  
   summary_table <- reactive({
     get_summary_table(presence_tab(), hide_absent = input[["systems_summary_hide_missing"]])
   })
-
+  
   observe({
     output[["systems_summary_plot"]] <- renderPlot({
       # validate(need(is.null(blast_results), "Please run BLAST to see the results."))
-      get_summary_plot(presence_tab(), hide_absent = input[["systems_summary_hide_missing"]],
-                       presence_col = filters[["presence_col"]],
-                       absence_col = filters[["absence_col"]])
+      get_summary_plot(
+        presence_tab(), 
+        hide_absent = input[["systems_summary_hide_missing"]],
+        presence_col = filters[["presence_col"]],
+        absence_col = filters[["absence_col"]])
     }, height = 150+10*nrow(summary_table()), width = 300+10*ncol(summary_table()))
   })
-
+  
   absent_systems <- reactive({
     summary_tab <- get_summary_table(presence_tab())
-    names(summary_tab[, 2:ncol(summary_tab)][which(colSums(summary_tab[, 2:ncol(summary_tab)]) == 0)])
+    colnames(summary_tab)[sapply(colnames(summary_tab), function(i) ifelse(all(summary_tab[[i]] == "Absent"), TRUE, FALSE))]
   })
-
-
+  
+  
   all_genes_plot_dat <- reactive({
     if(input[["all_genes_hide_missing"]]) {
       presence_tab()[c(1, which(colSums(presence_tab()[2:ncol(presence_tab())]) > 0) + 1)]
@@ -191,12 +183,12 @@ shinyServer(function(input, output, session) {
       presence_tab()
     }
   })
-
+  
   scaling_dat <- reactive({
     req(all_genes_plot_dat)
     get_presence_plot_data(all_genes_plot_dat(), systems = filters[["systems"]])
   })
-
+  
   observe({
     req(all_genes_plot_dat)
     output[["presence_plot"]] <- renderPlot({
@@ -207,29 +199,28 @@ shinyServer(function(input, output, session) {
                         absence_col = filters[["absence_col"]])
     }, height = 300+10*length(unique(scaling_dat()[["Gene"]])), width = 200+10*length(unique(scaling_dat()[["File"]])))
   })
-
-
-
-
+  
+  
+  
+  
   observe({
     plot_system_dat <- reactive({
-      #req(presence_plot_dat)
-      df <- left_join(presence_plot_dat(), adhesins_df, by = "Gene")
+      df <- left_join(presence_plot_dat(), adhesins_df_grouped, by = "Gene")
       if(input[["systems_hide_missing"]] == TRUE) {
         df <- filter(df, !(System %in% absent_systems()))
       }
       ungroup(df)
     })
-
+    
     output[["systems_plots"]] <- renderUI({
-      nc <- reactive({150 + 15*(length(unique(plot_system_dat()[["File"]])))})
+      nc <- reactive({250 + 15*(length(unique(plot_system_dat()[["File"]])))})
       systems_plots_list <- lapply(1L:length(unique(plot_system_dat()[["System"]])), function(i) {
-        list(plotOutput(paste0("systems_plot", i), height = nc()))
+        list(withSpinner(plotOutput(paste0("systems_plot", i), height = nc())))
       })
     })
-
+    
     systems <- reactive({unique(plot_system_dat()[["System"]])})
-
+    
     for(i in 1L:length(unique(plot_system_dat()[["System"]]))) {
       local({
         my_i <- i
@@ -239,37 +230,39 @@ shinyServer(function(input, output, session) {
         nr <- reactive({length(unique(system_data()[["File"]]))})
         nc <- reactive({length(unique(system_data()[["Gene"]]))})
         output[[paste0("systems_plot", my_i)]] <- renderPlot({
-          get_system_plot(presence_tab(), systems()[my_i],
-                          presence_col = filters[["presence_col"]],
-                          absence_col = filters[["absence_col"]])
-        }, width = 350+10*nc(), height = 60+15*nr())
+          grid.arrange(set_panel_size(
+            get_system_plot(presence_tab(), systems()[my_i],
+                            presence_col = filters[["presence_col"]],
+                            absence_col = filters[["absence_col"]]),
+            width = unit(20*nc(), "pt"), height = unit(20*nr(), "pt")))
+        }, width = 350+10*nc(), height = 200+15*nr())
       })
     }
   })
-
-
+  
+  
   output[["download"]] <- downloadHandler(
     filename = "adhesiomeR-results.html",
     content <- function(file) {
-
+      
       src <- normalizePath("adhesiomeR-report.Rmd")
-
+      
       input_files <- input[["seq_file"]][["name"]]
       # temporarily switch to the temp dir, in case you do not have write
       # permission to the current working directory
       owd <- setwd(tempdir())
       on.exit(setwd(owd))
       generate_report_files(presence_table = presence_tab(), elements = input[["elements"]], outdir = owd,
-                                         hide_absent_genes = input[["report_hide_genes"]], hide_absent_systems = input[["report_hide_systems"]],
-                                         presence_col = filters[["presence_col"]], absence_col = filters[["absence_col"]])
+                            hide_absent_genes = input[["report_hide_genes"]], hide_absent_systems = input[["report_hide_systems"]],
+                            presence_col = filters[["presence_col"]], absence_col = filters[["absence_col"]])
       file.copy(src, "adhesiomeR-report.Rmd", overwrite = TRUE)
       genome_files <- input[["seq_file"]][["name"]]
       outdir <- owd
       elements <- input[["elements"]]
       out <- rmarkdown::render("adhesiomeR-report.Rmd", output_format = "html_document",
-                        file, quiet = TRUE,
-                        params = list(genome_files, outdir, elements))
-
+                               file, quiet = TRUE,
+                               params = list(genome_files, outdir, elements))
+      
       fl <- list.files(outdir, full.names = TRUE)
       sapply(c("summary_table.csv", "summary_plot.png", "presence_table.csv", "presence_plot.png"), function(i)
         invisible(file.remove(fl[grepl(i, fl)])))

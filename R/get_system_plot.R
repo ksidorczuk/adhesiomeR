@@ -16,11 +16,11 @@ get_system_plot <- function(presence_table, system, presence_col = "#e42b24", ab
   
   plot_dat <- ungroup(
     left_join(get_presence_plot_data(presence_table), 
-              adhesins_df, by = "Gene"))
+              adhesins_df_grouped, by = "Gene"))
   
   ggplot(filter(plot_dat, System == system),
          aes(x = Gene, y = File, fill = Presence)) +
-    geom_tile() +
+    geom_tile(color = "white") +
     scale_fill_manual("Presence", values = c("yes" = presence_col, "no" = absence_col), drop = FALSE) +
     ggtitle(system) +
     plot_theme() +

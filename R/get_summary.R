@@ -15,7 +15,11 @@
 #' @importFrom tidyr pivot_longer pivot_wider
 #' @export
 get_summary_table <- function(presence_table, hide_absent = FALSE) {
-  presence_table <- select(presence_table, -"faeA")
+  presence_table <- if("faeA" %in% colnames(presence_table)) {
+    select(presence_table, -"faeA")
+  } else {
+    presence_table
+  }
   res <- mutate(
     summarise(
       group_by(
@@ -32,7 +36,7 @@ get_summary_table <- function(presence_table, hide_absent = FALSE) {
   )
   
   pivoted_res <- left_join(pivot_wider(res, File, names_from = "System", values_from = "gene_percentage", values_fill = "Absent"),
-                           presence_table[, c("File", "eae")])
+                           presence_table[, c("File", "eae")], by = "File")
   
   updated_res <- mutate(
     pivoted_res,
