@@ -253,7 +253,7 @@ decide_between_problematic_genes <- function(pivoted_res, problematic_genes) {
 #' Get presence or identity from BLAST
 #' 
 #' This function summarises BLAST results and returns presence or
-#' maximum identity for a given query.
+#' maximum Bit score for a given query.
 #' @param blast_res blast results obtained with \code{\link{get_blast_res}}
 #' @param type \code{"presence"} or \code{"identity"}
 #' @return a data frame of gene presence/absence or the highest identity 
@@ -267,7 +267,7 @@ get_presence_from_blast <- function(blast_res, type = "presence") {
   res <- mutate(
     summarise(
       group_by(blast_res, File, Subject),
-      Presence = ifelse(type == "presence", 1, max(`% identity`))),
+      Presence = ifelse(type == "presence", 1, max(`Bit score`))),
     Gene = Subject)
   
   pivoted_res <- pivot_wider(res[, c("File", "Gene", "Presence")],

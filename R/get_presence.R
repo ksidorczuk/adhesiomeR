@@ -13,7 +13,10 @@
 #' @param count_copies \code{logical} indicating if occurences of gene 
 #' copies should be counted. An occurence of gene is considered a separate
 #' copy if its location do not overlap with other hit to the same gene.
-#' @param identity identity percent threshold
+#' @param coeff coefficient from the linear model used to set the bit score
+#' threshold
+#' @param interc intercept from the linear model used to set the bit score
+#' threshold
 #' @param n_threads number of threads for parallel processing. Default is one. 
 #' The maximum number of threads is determined by \code{\link[parallel]{detectCores}}.
 #' @return a data frame of gene presence/absence. The first column contains
@@ -28,7 +31,7 @@
 #' @importFrom parallel stopCluster detectCores
 #' @importFrom progressr with_progress progressor handlers handler_progress
 #' @export
-get_presence_table <- function(blast_res, add_missing = TRUE, count_copies = FALSE, identity = 75, n_threads = 1) {
+get_presence_table <- function(blast_res, add_missing = TRUE, count_copies = FALSE, coeff, interc, n_threads = 1) {
   max_nt <- detectCores(logical = FALSE)
   if(n_threads > max_nt) {
     stop(paste0("The number of threads you specified is too large. The maximum number of threads determined by parallel::detectCores function is: ", detectCores(logical = FALSE), ". 
@@ -39,13 +42,15 @@ get_presence_table <- function(blast_res, add_missing = TRUE, count_copies = FAL
   
   problematic_genes <- adhesiomeR::problematic_genes
   nonproblematic_genes <- adhesiomeR::adhesins_df[["Gene"]][which(!(adhesiomeR::adhesins_df[["Gene"]] %in% unlist(problematic_genes)))]
-  len_groups <- adhesiomeR::len_groups
-  gene_groups <- adhesiomeR::gene_groups
+  #len_groups <- adhesiomeR::len_groups
+  #gene_groups <- adhesiomeR::gene_groups
+  adhesins_lengths <- adhesiomeR::adhesins_lengths
   
-  short_res <- filter(blast_res, Subject %in% len_groups[["short"]], Evalue < 10^-35, `% identity` > identity)
-  medium_res <- filter(blast_res, Subject %in% len_groups[["medium"]], Evalue < 10^-70, `% identity` > identity)
-  long_res <- filter(blast_res, Subject %in% len_groups[["long"]], Evalue < 10^-100, `% identity` > identity)
-  all_blast_res <- bind_rows(bind_rows(short_res, medium_res), long_res)
+  # short_res <- filter(blast_res, Subject %in% len_groups[["short"]], Evalue < 10^-35, `% identity` > identity)
+  # medium_res <- filter(blast_res, Subject %in% len_groups[["medium"]], Evalue < 10^-70, `% identity` > identity)
+  # long_res <- filter(blast_res, Subject %in% len_groups[["long"]], Evalue < 10^-100, `% identity` > identity)
+  # all_blast_res <- bind_rows(bind_rows(short_res, medium_res), long_res)
+  all_blast_res <- filter(left_join(blast_res, adhesins_lengths, by = c("Subject" = "Gene")), `Bit score` >= coeff*Length-interc)
   
   if(n_threads > 1) {
     plan(multisession, workers = n_threads, gc = TRUE)
