@@ -8,8 +8,7 @@ get_presence_table(
   blast_res,
   add_missing = TRUE,
   count_copies = FALSE,
-  coeff,
-  interc,
+  identity = 75,
   n_threads = 1
 )
 }
@@ -24,11 +23,7 @@ in the resulting table, even if they were not found in any genome.}
 copies should be counted. An occurence of gene is considered a separate
 copy if its location do not overlap with other hit to the same gene.}
 
-\item{coeff}{coefficient from the linear model used to set the bit score
-threshold}
-
-\item{interc}{intercept from the linear model used to set the bit score
-threshold}
+\item{identity}{identity percent threshold}
 
 \item{n_threads}{number of threads for parallel processing. Default is one. 
 The maximum number of threads is determined by \code{\link[parallel]{detectCores}}.}
