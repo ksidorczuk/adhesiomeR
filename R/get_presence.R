@@ -13,7 +13,10 @@
 #' @param count_copies \code{logical} indicating if occurences of gene 
 #' copies should be counted. An occurence of gene is considered a separate
 #' copy if its location do not overlap with other hit to the same gene.
-#' @param identity identity percent threshold
+#' @param identity minimum identity percent threshold for considering gene
+#' as present.
+#' @param coverage minimum subject coverage per cent for considering gene
+#' as present.
 #' @param n_threads number of threads for parallel processing. Default is one. 
 #' The maximum number of threads is determined by \code{\link[parallel]{detectCores}}.
 #' @return a data frame of gene presence/absence. The first column contains
@@ -43,7 +46,7 @@ get_presence_table <- function(blast_res, add_missing = TRUE, count_copies = FAL
   gene_groups <- adhesiomeR::gene_groups
   
   blast_res_lens <- left_join(blast_res, adhesins_lengths, by = c("Subject" = "Gene"))
-  blast_res_lens[["Subject coverage"]] <- blast_res_lens[["Alignment length"]]/blast_res_lens[["Length"]]
+  blast_res_lens[["Subject coverage"]] <- blast_res_lens[["Alignment length"]]/blast_res_lens[["Length"]]*100
   all_blast_res <- filter(blast_res_lens, `% identity` > identity & `Subject coverage` > coverage)
   
   if(n_threads > 1) {
