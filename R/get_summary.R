@@ -15,19 +15,17 @@
 #' @importFrom tidyr pivot_longer pivot_wider
 #' @export
 get_summary_table <- function(presence_table, hide_absent = FALSE) {
-  presence_table <- if("faeA" %in% colnames(presence_table)) {
-    select(presence_table, -"faeA")
-  } else {
-    presence_table
-  }
+  
   res <- mutate(
     summarise(
       group_by(
         left_join(
-          pivot_longer(add_missing_genes(presence_table, type = "grouped"), 
-                       2:ncol(add_missing_genes(presence_table, type = "grouped")), 
-                       names_to = "Gene", values_to = "Presence"), 
-          adhesins_df_grouped, by = "Gene"),
+          filter(
+            pivot_longer(add_missing_genes(presence_table, type = "grouped"), 
+                         2:ncol(add_missing_genes(presence_table, type = "grouped")), 
+                         names_to = "Gene", values_to = "Presence"),
+            Gene != "faeA"),
+          filter(adhesins_df_grouped, Gene != "faeA"), by = "Gene"),
         File, System),
       gene_percentage = round(sum(Presence)*100/n(), 2)),
     gene_percentage = case_when(gene_percentage == 100 ~ "Present",
