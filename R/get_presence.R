@@ -1,11 +1,11 @@
-#' Get presence table
+#' Get presence table using relaxed settings
 #' 
-#' This function creates a presence/absence table of genes in analysed genomes
-#' based on results of the BLAST search. Each row corresponds to one input file
-#' and each column to one gene. Presence of a given gene is indicated as a 1, 
-#' whereas absence as a 0. You can modify thresholds used to consider a gene
-#' as present using \code{identity_threshold} and \code{evalue_threshold} 
-#' arguments. 
+#' This function creates a presence/absence table using relaxed settings, i.e.
+#' identity and coverage thresholds that may be modified by the user. This 
+#' function performs initial filtering of the blast results according to set 
+#' thresholds and calls \code{\link{get_presence_table}} to create the gene 
+#' presence/absence table. 
+#' 
 #' @param blast_res blast results obtained with \code{\link{get_blast_res}}
 #' @param add_missing \code{logical} indicating if genes not found by BLAST 
 #' should be added. By default \code{TRUE}, meaning that all genes are shown 
@@ -23,6 +23,80 @@
 #' the names of input files and the following correspond to analysed genes.
 #' Presence of a gene is indicated by 1, whereas absence by 0. In case of
 #' copy counts, numbers of gene copies is presented.
+#' @importFrom dplyr left_join 
+#' @export
+get_presence_table_relaxed <- function(blast_res, add_missing = TRUE, count_copies = FALSE, identity = 75, coverage = 75, n_threads = 1) {
+  check_cores()
+  
+  adhesins_lengths <- adhesiomeR::adhesins_lengths
+  
+  blast_res_lens <- left_join(blast_res, adhesins_lengths, by = c("Subject" = "Gene"))
+  blast_res_lens[["Subject coverage"]] <- blast_res_lens[["Alignment length"]]/blast_res_lens[["Length"]]*100
+  all_blast_res <- filter(blast_res_lens, `% identity` > identity & `Subject coverage` > coverage)
+  
+  get_presence_table(all_blast_res, add_missing = add_missing, count_copies = count_copies, n_threads = n_threads)
+  
+} 
+
+
+#' Get presence table using strict settings
+#' 
+#' This function creates a presence/absence table using strict settings, i.e.
+#' bit score thresholds set specifically for each adhesin gene. These thresholds
+#' cannot be modified by the user. This function performs initial filtering of 
+#' the blast results according to bit score thresholds and calls 
+#' \code{\link{get_presence_table}} to create the gene presence/absence table. 
+#' 
+#' @param blast_res blast results obtained with \code{\link{get_blast_res}}
+#' @param add_missing \code{logical} indicating if genes not found by BLAST 
+#' should be added. By default \code{TRUE}, meaning that all genes are shown 
+#' in the resulting table, even if they were not found in any genome. 
+#' @param count_copies \code{logical} indicating if occurences of gene 
+#' copies should be counted. An occurence of gene is considered a separate
+#' copy if its location do not overlap with other hit to the same gene.
+#' @param n_threads number of threads for parallel processing. Default is one. 
+#' The maximum number of threads is determined by \code{\link[parallel]{detectCores}}.
+#' @return a data frame of gene presence/absence. The first column contains
+#' the names of input files and the following correspond to analysed genes.
+#' Presence of a gene is indicated by 1, whereas absence by 0. In case of
+#' copy counts, numbers of gene copies is presented.
+#' @importFrom dplyr left_join filter
+#' @export
+get_presence_table_strict <- function(blast_res, add_missing = TRUE, count_copies = FALSE, n_threads = 1) {
+  check_cores()
+  
+  bitscore_thresholds <- adhesiomeR::bitscore_thresholds
+  
+  blast_res_thr <- left_join(blast_res, bitscore_thresholds, by = c("Subject" = "Gene"))
+  all_blast_res <- filter(blast_res_thr, `Bit score` >= Threshold)
+  
+  get_presence_table(all_blast_res, add_missing = add_missing, count_copies = count_copies, n_threads = n_threads)
+  
+}
+
+
+  
+#' Get presence table
+#' 
+#' This function creates a presence/absence table of genes in analysed genomes
+#' based on results of the BLAST search. Each row corresponds to one input file
+#' and each column to one gene. Presence of a given gene is indicated as a 1, 
+#' whereas absence as a 0. You can modify thresholds used to consider a gene
+#' as present using \code{identity_threshold} and \code{evalue_threshold} 
+#' arguments. 
+#' @param blast_res blast results obtained with \code{\link{get_blast_res}}
+#' @param add_missing \code{logical} indicating if genes not found by BLAST 
+#' should be added. By default \code{TRUE}, meaning that all genes are shown 
+#' in the resulting table, even if they were not found in any genome. 
+#' @param count_copies \code{logical} indicating if occurences of gene 
+#' copies should be counted. An occurence of gene is considered a separate
+#' copy if its location do not overlap with other hit to the same gene.
+#' @param n_threads number of threads for parallel processing. Default is one. 
+#' The maximum number of threads is determined by \code{\link[parallel]{detectCores}}.
+#' @return a data frame of gene presence/absence. The first column contains
+#' the names of input files and the following correspond to analysed genes.
+#' Presence of a gene is indicated by 1, whereas absence by 0. In case of
+#' copy counts, numbers of gene copies is presented.
 #' @importFrom dplyr group_by summarise mutate filter ungroup bind_rows select
 #' @importFrom tidyr pivot_wider
 #' @importFrom stats aggregate setNames
@@ -31,23 +105,11 @@
 #' @importFrom parallel stopCluster detectCores
 #' @importFrom progressr with_progress progressor handlers handler_progress
 #' @export
-get_presence_table <- function(blast_res, add_missing = TRUE, count_copies = FALSE, identity = 75, coverage = 75, n_threads = 1) {
-  max_nt <- detectCores(logical = FALSE)
-  if(n_threads > max_nt) {
-    stop(paste0("The number of threads you specified is too large. The maximum number of threads determined by parallel::detectCores function is: ", detectCores(logical = FALSE), ". 
-  Please select a value between 1 and ", detectCores(logical = FALSE), "."))
-  } else if (!(n_threads %in% 1L:detectCores(logical = FALSE)))  {
-    stop("The number of threads is incorrect. Please make sure that you entered a valid number.")
-  }
-  
+get_presence_table <- function(blast_res, add_missing = TRUE, count_copies = FALSE, n_threads = 1) {
+
   problematic_genes <- adhesiomeR::problematic_genes
   nonproblematic_genes <- adhesiomeR::adhesins_df[["Gene"]][which(!(adhesiomeR::adhesins_df[["Gene"]] %in% unlist(problematic_genes)))]
-  adhesins_lengths <- adhesiomeR::adhesins_lengths
   gene_groups <- adhesiomeR::gene_groups
-  
-  blast_res_lens <- left_join(blast_res, adhesins_lengths, by = c("Subject" = "Gene"))
-  blast_res_lens[["Subject coverage"]] <- blast_res_lens[["Alignment length"]]/blast_res_lens[["Length"]]*100
-  all_blast_res <- filter(blast_res_lens, `% identity` > identity & `Subject coverage` > coverage)
   
   if(n_threads > 1) {
     plan(multisession, workers = n_threads, gc = TRUE)

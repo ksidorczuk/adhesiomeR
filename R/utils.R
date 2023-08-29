@@ -95,9 +95,10 @@ generate_report_files <- function(presence_table, elements = c("summary_table", 
 
 #' @export
 #' @noRd
-pathotype_colors <- c("aEPEC" = "#45e495", "STEC" = "#ca45e4", "NA" = "#949494", "EAEC" = "#e2ab35", "EHEC" = "#e44444", "NMEC" = "#e44496", 
-                      "DAEC" = "#e46f44", "Nonpathogenic" = "#44b7e4", "ETEC" = "#8f44e4", "UPEC" = "#e1e444", "tEPEC" = "#9de444", "EIEC" = "#4471e4")
-
+pathotype_colors <- c("aEPEC" = "#B2DF8A", "DAEC" = "#B15928", "EAEC" = "#e78ac3", "EHEC" = "#d73027",
+            "EIEC" = "#CAB2D6", "ETEC" = "#1F78B4", "STEC" = "#6A3D9A", "tEPEC" = "#66c2a5", 
+            "APEC" = "#fc8d62",  "NMEC" = "#FDBF6F", "UPEC" = "#FFFF99", 
+            "Nonpathogenic" = "#A6CEE3",  "NA" = "#949494")
 
 #' @importFrom dplyr select mutate bind_rows
 #' @export
@@ -277,3 +278,20 @@ get_presence_from_blast <- function(blast_res, type = "presence") {
   ungroup(add_missing_genes(pivoted_res))
 }
 
+#' Check number of threads
+#' 
+#' This function checks if the given number of threads does not exceed the number
+#' of available threads
+#' @param n_threads declared number of threads to use
+#' @importFrom parallel detectCores
+#' @export
+#' @noRd
+check_cores <- function(n_threads) {
+  max_nt <- detectCores(logical = FALSE)
+  if(n_threads > max_nt) {
+    stop(paste0("The number of threads you specified is too large. The maximum number of threads determined by parallel::detectCores function is: ", detectCores(logical = FALSE), ". 
+  Please select a value between 1 and ", detectCores(logical = FALSE), "."))
+  } else if (!(n_threads %in% 1L:detectCores(logical = FALSE)))  {
+    stop("The number of threads is incorrect. Please make sure that you entered a valid number.")
+  }
+}

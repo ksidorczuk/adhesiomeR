@@ -43,6 +43,14 @@ NULL
 #' @title Adhesins gene length data frame
 #' @description A data frame containing sequence length of each gene
 #' @docType data
-#' @format a data frame with two columns and 435 rows
+#' @format a data frame with two columns and 525 rows
+#' @keywords datasets
+NULL
+
+#' @name bitscore_thresholds
+#' @title Bitscore thresholds used in the strict mode 
+#' @description A data frame containing bitscore threshold for each gene
+#' @docType data
+#' @format a data frame with two columns and 525 rows
 #' @keywords datasets
 NULL
