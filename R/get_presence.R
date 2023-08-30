@@ -26,7 +26,7 @@
 #' @importFrom dplyr left_join 
 #' @export
 get_presence_table_relaxed <- function(blast_res, add_missing = TRUE, count_copies = FALSE, identity = 75, coverage = 75, n_threads = 1) {
-  check_cores()
+  check_cores(n_threads)
   
   adhesins_lengths <- adhesiomeR::adhesins_lengths
   
@@ -63,7 +63,7 @@ get_presence_table_relaxed <- function(blast_res, add_missing = TRUE, count_copi
 #' @importFrom dplyr left_join filter
 #' @export
 get_presence_table_strict <- function(blast_res, add_missing = TRUE, count_copies = FALSE, n_threads = 1) {
-  check_cores()
+  check_cores(n_threads)
   
   bitscore_thresholds <- adhesiomeR::bitscore_thresholds
   
