@@ -116,20 +116,20 @@ get_presence_table <- function(blast_res, add_missing = TRUE, count_copies = FAL
     
     all_res <- bind_rows(
       future_lapply(problematic_genes, function(ith_set) {
-        get_gene_presence_for_localizations(all_blast_res, "problematic", ith_set)
+        get_gene_presence_for_localizations(blast_res, "problematic", ith_set)
       }),
       future_lapply(nonproblematic_genes, function(ith_gene) {
-        get_gene_presence_for_localizations(all_blast_res, "nonproblematic", ith_gene)
+        get_gene_presence_for_localizations(blast_res, "nonproblematic", ith_gene)
       })
     ) 
     plan(sequential)
   } else {
     all_res <- bind_rows(
       lapply(problematic_genes, function(ith_set) {
-        get_gene_presence_for_localizations(all_blast_res, "problematic", ith_set)
+        get_gene_presence_for_localizations(blast_res, "problematic", ith_set)
       }),
       lapply(nonproblematic_genes, function(ith_gene) {
-        get_gene_presence_for_localizations(all_blast_res, "nonproblematic", ith_gene)
+        get_gene_presence_for_localizations(blast_res, "nonproblematic", ith_gene)
       })
     ) 
   }
