@@ -4,14 +4,14 @@
 \alias{get_blast_res}
 \title{Get BLAST results for many files}
 \usage{
-get_blast_res(input_file_list, nt = 1, blast_dir = Sys.which("blastn"))
+get_blast_res(input_file_list, n_threads = 1, blast_dir = Sys.which("blastn"))
 }
 \arguments{
 \item{input_file_list}{A \code{list} of file names that will be used
 as input files for BLAST search. File have to contain nucleotide sequences
 in a FASTA format.}
 
-\item{nt}{number of threads used for running BLAST. Default is one. The 
+\item{n_threads}{number of threads used for running BLAST. Default is one. The 
 maximum number of threads is determined by \code{\link[parallel]{detectCores}}.}
 
 \item{blast_dir}{A path to the directory with BLAST executables. By default,

@@ -4,7 +4,7 @@
 #' @param input_file_list A \code{list} of file names that will be used
 #' as input files for BLAST search. File have to contain nucleotide sequences
 #' in a FASTA format. 
-#' @param nt number of threads used for running BLAST. Default is one. The 
+#' @param n_threads number of threads used for running BLAST. Default is one. The 
 #' maximum number of threads is determined by \code{\link[parallel]{detectCores}}.
 #' @param blast_dir A path to the directory with BLAST executables. By default,
 #' it tries to find the proper executable by running system command \code{which}
@@ -23,17 +23,17 @@
 #' @importFrom dplyr mutate
 #' @importFrom progressr with_progress progressor handlers handler_progress
 #' @export
-get_blast_res <- function(input_file_list, nt = 1, blast_dir = Sys.which("blastn")) {
+get_blast_res <- function(input_file_list, n_threads = 1, blast_dir = Sys.which("blastn")) {
   max_nt <- detectCores(logical = FALSE)
-  if(nt > max_nt) {
+  if(n_threads > max_nt) {
     stop(paste0("The number of threads you specified is too large. The maximum number of threads determined by parallel::detectCores function is: ", detectCores(logical = FALSE), ". 
   Please select a value between 1 and ", detectCores(logical = FALSE), "."))
-  } else if (!(nt %in% 1L:detectCores(logical = FALSE)))  {
+  } else if (!(n_threads %in% 1L:detectCores(logical = FALSE)))  {
     stop("The number of threads is incorrect. Please make sure that you entered a valid number.")
   }
   
-  if(nt > 1) {
-    plan(multisession, workers = nt, gc = TRUE)
+  if(n_threads > 1) {
+    plan(multisession, workers = n_threads, gc = TRUE)
     
     handlers(handler_progress(format="[:bar] :percent :eta :message"))
     
