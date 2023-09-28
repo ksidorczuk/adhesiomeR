@@ -34,7 +34,7 @@ get_presence_table_relaxed <- function(blast_res, add_missing = TRUE, count_copi
   blast_res_lens[["Subject coverage"]] <- blast_res_lens[["Alignment length"]]/blast_res_lens[["Length"]]*100
   all_blast_res <- filter(blast_res_lens, `% identity` > identity & `Subject coverage` > coverage)
   
-  get_presence_table(all_blast_res, add_missing = add_missing, count_copies = count_copies, n_threads = n_threads)
+  get_presence_table(blast_res, all_blast_res, add_missing = add_missing, count_copies = count_copies, n_threads = n_threads)
   
 } 
 
@@ -70,7 +70,7 @@ get_presence_table_strict <- function(blast_res, add_missing = TRUE, count_copie
   blast_res_thr <- left_join(blast_res, bitscore_thresholds, by = c("Subject" = "Gene"))
   all_blast_res <- filter(blast_res_thr, `Bit score` >= Threshold)
   
-  get_presence_table(all_blast_res, add_missing = add_missing, count_copies = count_copies, n_threads = n_threads)
+  get_presence_table(blast_res, all_blast_res, add_missing = add_missing, count_copies = count_copies, n_threads = n_threads)
   
 }
 
@@ -85,6 +85,7 @@ get_presence_table_strict <- function(blast_res, add_missing = TRUE, count_copie
 #' as present using \code{identity_threshold} and \code{evalue_threshold} 
 #' arguments. 
 #' @param blast_res blast results obtained with \code{\link{get_blast_res}}
+#' @param all_blast_res filtered blast results 
 #' @param add_missing \code{logical} indicating if genes not found by BLAST 
 #' should be added. By default \code{TRUE}, meaning that all genes are shown 
 #' in the resulting table, even if they were not found in any genome. 
@@ -105,7 +106,7 @@ get_presence_table_strict <- function(blast_res, add_missing = TRUE, count_copie
 #' @importFrom parallel stopCluster detectCores
 #' @importFrom progressr with_progress progressor handlers handler_progress
 #' @export
-get_presence_table <- function(blast_res, add_missing = TRUE, count_copies = FALSE, n_threads = 1) {
+get_presence_table <- function(blast_res, all_blast_res, add_missing = TRUE, count_copies = FALSE, n_threads = 1) {
 
   problematic_genes <- adhesiomeR::problematic_genes
   nonproblematic_genes <- adhesiomeR::adhesins_df[["Gene"]][which(!(adhesiomeR::adhesins_df[["Gene"]] %in% unlist(problematic_genes)))]
@@ -116,20 +117,20 @@ get_presence_table <- function(blast_res, add_missing = TRUE, count_copies = FAL
     
     all_res <- bind_rows(
       future_lapply(problematic_genes, function(ith_set) {
-        get_gene_presence_for_localizations(blast_res, "problematic", ith_set)
+        get_gene_presence_for_localizations(all_blast_res, "problematic", ith_set)
       }),
       future_lapply(nonproblematic_genes, function(ith_gene) {
-        get_gene_presence_for_localizations(blast_res, "nonproblematic", ith_gene)
+        get_gene_presence_for_localizations(all_blast_res, "nonproblematic", ith_gene)
       })
     ) 
     plan(sequential)
   } else {
     all_res <- bind_rows(
       lapply(problematic_genes, function(ith_set) {
-        get_gene_presence_for_localizations(blast_res, "problematic", ith_set)
+        get_gene_presence_for_localizations(all_blast_res, "problematic", ith_set)
       }),
       lapply(nonproblematic_genes, function(ith_gene) {
-        get_gene_presence_for_localizations(blast_res, "nonproblematic", ith_gene)
+        get_gene_presence_for_localizations(all_blast_res, "nonproblematic", ith_gene)
       })
     ) 
   }

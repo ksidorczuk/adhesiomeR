@@ -6,6 +6,7 @@
 \usage{
 get_presence_table(
   blast_res,
+  all_blast_res,
   add_missing = TRUE,
   count_copies = FALSE,
   n_threads = 1
@@ -13,6 +14,8 @@ get_presence_table(
 }
 \arguments{
 \item{blast_res}{blast results obtained with \code{\link{get_blast_res}}}
+
+\item{all_blast_res}{filtered blast results}
 
 \item{add_missing}{\code{logical} indicating if genes not found by BLAST 
 should be added. By default \code{TRUE}, meaning that all genes are shown 
