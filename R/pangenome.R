@@ -22,13 +22,18 @@ pangenome_to_genome <- function(blast_res, presence_absence_file) {
   long_df <- bind_rows(
     lapply(1:nrow(gpa), function(i) {
       sel <- which(gpa[i, 1:ncol(gpa)] != "")
+      if(length(sel) != 0) {
+        
       #sel_names <- colnames(gpa)[sel[2:length(sel)]]
       #multiple_genes <- sapply(gpa[i, sel[2:length(sel)]], function(i) grep(";", strsplit(i, "")[[1]]))
       #copies <- sapply(multiple_genes, function(i) )
       data.frame(File = colnames(gpa)[sel[2:length(sel)]],
                  Gene = gpa[["Gene"]][i])
+      } else {
+        data.frame(File = c(),
+                   Gene = c())
+      }
     })
   )
-  
   left_join(select(blast_res, -File), long_df, by = c("Query" = "Gene"), relationship = "many-to-many")
 }
