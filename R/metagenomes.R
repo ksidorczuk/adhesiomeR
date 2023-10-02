@@ -17,14 +17,14 @@
 #' @export
 gc_to_sample <- function(blast_res, abundance_matrix, threshold = NULL) {
   ab_mat <- read.delim(abundance_matrix)
-  tresh <- if(is.null(threshold)) {
+  thresh <- if(is.null(threshold)) {
     0 
   } else {
     threshold
   }
   long_df <- bind_rows(
     lapply(1:nrow(ab_mat), function(i) {
-      sel <- which(ab_mat[i, 2:ncol(ab_mat)] > threshold)
+      sel <- which(ab_mat[i, 2:ncol(ab_mat)] > thresh)
       if(length(sel) != 0) {
         data.frame(File = colnames(ab_mat)[sel+1],
                    Gene = ab_mat[["Gene"]][i])
