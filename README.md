@@ -139,3 +139,89 @@ get_summary_plot(system_df, hide_absent = TRUE)
 get_summary_plot(system_df, hide_absent = TRUE)
 
 ```
+
+### Pangenome analysis
+
+To analyse pangenomes with adhesiomeR, you will need protein sequences of the pangenome
+and the gene presence absence table. You can generate this files with Roary or
+panaroo. Note that adhesiomeR functions were developed to work on output files of
+these tools! If you have generated your pangenome using different software, please
+make sure that your files are in the same format as output files from Roary or panaroo. 
+
+Please note that while using pangenome file, you will not be able to check multiple
+occurrences of genes, using ```count_copies = TRUE``` on expanded results will not
+be able to identify gene copies as the information about their original localization
+is not retained in these files. 
+
+You can download example files below:
+
+- [pan_genome_reference.fa](https://www.dropbox.com/scl/fi/d7ydmolwgiqamfsq3q5y5/pan_genome_reference.fa?rlkey=v1svmtujkxy5gdu9xjebkeveq&dl=0) 
+- [gene_presence_absence.csv](https://www.dropbox.com/scl/fi/6livd7r4comkp5dmkwev2/gene_presence_absence.csv?rlkey=q876glanp2arunf9sitovcqij&dl=0)
+
+```r
+# Run blast search on pangenome fasta file
+blast_res <- get_blast_res("/path/to/pangenome/files/pan_genome_reference.fa", n_threads = 4)
+
+# Expand results into individual genomes
+blast_res_full <- pangenome_to_genome(blast_res, "path/to/pangenome/files/gene_presence_absence.csv")
+
+# Get adhesin presence/absence table
+presence_table <- get_presence_table(blast_res_full)
+
+# Get adhesin system information
+system_table <- get_summary_table(presence_table)
+```
+
+### Metagenomics - gene catalogue analysis
+
+This example uses files published in [Hildebrand et al. 2021](https://doi.org/10.1016/j.chom.2021.05.008).
+Please be aware that the following type of analysis is meant to be run on linux machine.
+First, we run BLAST search on a gene catalogue. In the next step, we want to associate each hit with
+samples that contain given gene. Since abundance matrices generated from metagenomic WGS analyses are
+generally too big to load them into R, we first extract the subset of data from the original file by 
+selecting  accessions/numbers of genes with hits to adhesins. This subset of the original abundance
+matrix can be loaded into R and used for further processing. 
+Please note that this approach will not be able to identify multiple copies of adhesin genes in samples.
+
+#### Step 1. Run BLAST search
+
+```r
+# Run blast search on a gene catalogue 
+blast_res <- get_blast_res("/path/to/gene/catalogue/compl.incompl.95.prot.faa", n_threads = 12)
+# Save blast results to csv file for further processing
+write.csv(blast_res, "gc_blast_results.csv", row.names = FALSE)
+```
+
+#### Step 2. Extract subset of data from abundance matrix
+
+Notice that this step does not use R but bash. You can also use these commands
+from within R using ```system``` function. 
+
+```
+# Extract gene names with hits to adhesins
+cut -d$'\t' -f 1 gc_blast_results.csv | uniq | grep -v "Query" > genes.txt
+
+# Extract gene abundance in samples
+zcat Matrix.mat.gz | head -n 1 > gene_abundance.txt
+zcat Matrix.mat.gz | sed -nf <(sed 's/$/p/' genes.txt) >> gene_abundance.txt
+```
+
+#### Step 3. Expand results to samples
+
+```r
+# Define path to the subset of abundance matrix
+ab_mat <- "gene_abundance.txt"
+
+# Extend blast results
+extended_blast_res <- gc_to_sample(blast_res, ab_mat)
+```
+
+#### Step 4. Run adhesiomeR analysis
+
+```r
+# Get adhesin gene presence/absence table
+presence_table <- get_presence_table_strict(extended_blast_res, n_threads = 12)
+
+# Get system summary
+system_table <- get_summary_table(presence_table)
+```
