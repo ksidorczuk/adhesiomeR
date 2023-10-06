@@ -75,7 +75,7 @@ get_presence_table_strict <- function(blast_res, add_missing = TRUE, count_copie
 }
 
 
-  
+
 #' Get presence table
 #' 
 #' This function creates a presence/absence table of genes in analysed genomes
@@ -107,7 +107,7 @@ get_presence_table_strict <- function(blast_res, add_missing = TRUE, count_copie
 #' @importFrom progressr with_progress progressor handlers handler_progress
 #' @export
 get_presence_table <- function(blast_res, all_blast_res, add_missing = TRUE, count_copies = FALSE, n_threads = 1) {
-
+  
   problematic_genes <- adhesiomeR::problematic_genes
   nonproblematic_genes <- adhesiomeR::adhesins_df[["Gene"]][which(!(adhesiomeR::adhesins_df[["Gene"]] %in% unlist(problematic_genes)))]
   gene_groups <- adhesiomeR::gene_groups
@@ -115,24 +115,36 @@ get_presence_table <- function(blast_res, all_blast_res, add_missing = TRUE, cou
   if(n_threads > 1) {
     plan(multisession, workers = n_threads, gc = TRUE)
     
-    all_res <- bind_rows(
-      future_lapply(problematic_genes, function(ith_set) {
-        get_gene_presence_for_localizations(all_blast_res, "problematic", ith_set)
-      }),
-      future_lapply(nonproblematic_genes, function(ith_gene) {
-        get_gene_presence_for_localizations(all_blast_res, "nonproblematic", ith_gene)
-      })
-    ) 
+    handlers(handler_progress(format="[:bar] :percent :eta :message"))
+    
+    with_progress({ 
+      p <- progressor(along = c(1:length(c(problematic_genes, nonproblematic_genes))))
+      all_res <- bind_rows(
+        future_lapply(problematic_genes, function(ith_set) {
+          p(message = "Calculating gene presence...")
+          get_gene_presence_for_localizations(all_blast_res, "problematic", ith_set)
+        }),
+        future_lapply(nonproblematic_genes, function(ith_gene) {
+          p(message = "Calculating gene presence...")
+          get_gene_presence_for_localizations(all_blast_res, "nonproblematic", ith_gene)
+        })
+      ) 
+    })
     plan(sequential)
   } else {
-    all_res <- bind_rows(
-      lapply(problematic_genes, function(ith_set) {
-        get_gene_presence_for_localizations(all_blast_res, "problematic", ith_set)
-      }),
-      lapply(nonproblematic_genes, function(ith_gene) {
-        get_gene_presence_for_localizations(all_blast_res, "nonproblematic", ith_gene)
-      })
-    ) 
+    with_progress({ 
+      p <- progressor(along = c(1:length(c(problematic_genes, nonproblematic_genes))))
+      all_res <- bind_rows(
+        lapply(problematic_genes, function(ith_set) {
+          p(message = "Calculating gene presence...")
+          get_gene_presence_for_localizations(all_blast_res, "problematic", ith_set)
+        }),
+        lapply(nonproblematic_genes, function(ith_gene) {
+          p(message = "Calculating gene presence...")
+          get_gene_presence_for_localizations(all_blast_res, "nonproblematic", ith_gene)
+        })
+      )
+    })
   }
   
   # Group the most similar genes
@@ -161,9 +173,9 @@ get_presence_table <- function(blast_res, all_blast_res, add_missing = TRUE, cou
   if(length(files_to_add) > 0) {
     rbind(final_res, 
           setNames(
-          cbind(data.frame("File" = files_to_add),
-                data.frame(matrix(0, nrow = length(files_to_add), ncol = ncol(final_res)-1))),
-          colnames(final_res)))
+            cbind(data.frame("File" = files_to_add),
+                  data.frame(matrix(0, nrow = length(files_to_add), ncol = ncol(final_res)-1))),
+            colnames(final_res)))
   } else {
     final_res
   }

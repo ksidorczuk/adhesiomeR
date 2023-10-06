@@ -41,7 +41,7 @@ get_blast_res <- function(input_file_list, n_threads = 1, blast_dir = Sys.which(
       p <- progressor(along = 1:length(input_file_list))
       res <- bind_rows(
         future_lapply(1:length(input_file_list), function(i) {
-          p()
+          p(message = "Running BLAST...")
           do_blast_single(input_file_list[[i]], blast_dir)
         })
       )
@@ -52,7 +52,7 @@ get_blast_res <- function(input_file_list, n_threads = 1, blast_dir = Sys.which(
       p <- progressor(along = 1:length(input_file_list))
       res <- bind_rows(
         lapply(1:length(input_file_list), function(i) {
-          p()
+          p(message = "Running BLAST...")
           do_blast_single(input_file_list[[i]], blast_dir)
         })
       )
