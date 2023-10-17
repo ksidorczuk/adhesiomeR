@@ -6,7 +6,7 @@
 \usage{
 get_presence_plot(
   presence_table,
-  systems = unique(adhesins_df[["System"]]),
+  systems = unique(adhesins_df_grouped[["System"]]),
   presence_col = "#e42b24",
   absence_col = "#85c1ff"
 )

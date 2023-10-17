@@ -24,7 +24,8 @@ Imports:
     ggrepel,
     rmarkdown,
     shiny,
-    progressr
+    progressr,
+    parallel
 Suggests:
 Repository: CRAN
 Language: en-US

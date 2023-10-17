@@ -61,6 +61,7 @@ get_presence_table_relaxed <- function(blast_res, add_missing = TRUE, count_copi
 #' Presence of a gene is indicated by 1, whereas absence by 0. In case of
 #' copy counts, numbers of gene copies is presented.
 #' @importFrom dplyr left_join filter
+#' @importFrom parallel detectCores
 #' @export
 get_presence_table_strict <- function(blast_res, add_missing = TRUE, count_copies = FALSE, n_threads = 1) {
   check_cores(n_threads)
@@ -235,7 +236,7 @@ get_presence_plot_data <- function(presence_table, systems = unique(adhesins_df_
 #' specified as a hex color code
 #' @importFrom ggplot2 ggplot geom_tile scale_fill_manual scale_x_discrete theme aes
 #' @export
-get_presence_plot <- function(presence_table, systems = unique(adhesins_df[["System"]]),
+get_presence_plot <- function(presence_table, systems = unique(adhesins_df_grouped[["System"]]),
                               presence_col = "#e42b24", absence_col = "#85c1ff") {
   
   plot_dat <- get_presence_plot_data(presence_table, systems)

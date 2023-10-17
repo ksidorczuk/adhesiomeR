@@ -10,8 +10,13 @@ gc_to_sample(blast_res, abundance_matrix, threshold = NULL)
 \item{blast_res}{a data frame with BLAST search results obtained by using
 \code{\link{get_blast_res}}.}
 
-\item{presence_absence_file}{A path to the abundance matrix file in
-a tab-delimited format. The first column is expected to contain gene names.}
+\item{abundance_matrix}{A path to the abundance matrix file in
+a tab-delimited format. The first column is expected to be named 'Gene' 
+and contain gene names}
+
+\item{threshold}{abundance threshold to consider a gene as present in a sample.
+The default value is \code{NULL} and means that samples with any abundance
+larger than 0 will be used.}
 }
 \value{
 A data frame with BLAST results expanded to individual samples

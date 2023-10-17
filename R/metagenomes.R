@@ -4,7 +4,7 @@
 #' samples that were used for gene catalogue creation. 
 #' @param blast_res a data frame with BLAST search results obtained by using
 #' \code{\link{get_blast_res}}. 
-#' @param presence_absence_file A path to the abundance matrix file in
+#' @param abundance_matrix A path to the abundance matrix file in
 #' a tab-delimited format. The first column is expected to be named 'Gene' 
 #' and contain gene names
 #' @param threshold abundance threshold to consider a gene as present in a sample.

@@ -14,14 +14,6 @@ NULL
 #' @keywords datasets
 NULL
 
-#' @name UMAP_data
-#' @title UMAP clustering of pathotyped RefSeq genomes 
-#' @description List ....
-#' @docType data
-#' @format a list
-#' @keywords datasets
-NULL
-
 #' @name gene_groups
 #' @title Groups of very similar genes
 #' @description A list of groups for very similar genes
@@ -52,5 +44,29 @@ NULL
 #' @description A data frame containing bitscore threshold for each gene
 #' @docType data
 #' @format a data frame with two columns and 525 rows
+#' @keywords datasets
+NULL
+
+#' @name clustering_all
+#' @title Clustering based on all adhesins
+#' @description Clustering of adhesin profiles based on all adhesins
+#' @docType data
+#' @format object of type clara, partition 
+#' @keywords datasets
+NULL
+
+#' @name clustering_fimbrial
+#' @title Clustering based on fimbrial adhesins
+#' @description Clustering of adhesin profiles based on fimbrial adhesins
+#' @docType data
+#' @format object of type clara, partition 
+#' @keywords datasets
+NULL
+
+#' @name clustering_nonfimbrial
+#' @title Clustering based on nonfimbrial adhesins
+#' @description Clustering of adhesin profiles based on nonfimbrial adhesins
+#' @docType data
+#' @format object of type clara, partition 
 #' @keywords datasets
 NULL
