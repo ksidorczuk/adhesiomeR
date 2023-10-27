@@ -8,15 +8,18 @@ library(shinyWidgets)
 library(tidyr)
 library(pander)
 library(rmarkdown)
-library(ggrepel)
 library(future.apply)
 library(gridExtra)
 library(egg)
+library(parallel)
+
+pkgload::load_all()
+source("shiny-utils.R")
 
 data(adhesins_df)
-data(UMAP_data)
+#data(UMAP_data)
 
-source("shiny-utils.R")
+#source("shiny-utils.R")
 
 options(shiny.maxRequestSize=10*1024^2)
 
@@ -24,11 +27,11 @@ shinyServer(function(input, output, session) {
   
   all_systems <- unique(adhesins_df[["System"]])
   
-  filters <- reactiveValues(thresh = 75,
-                            systems = unique(adhesins_df[["System"]]),
+  filters <- reactiveValues(systems = unique(adhesins_df[["System"]]),
                             presence_col = "#e00e00",
                             absence_col = "#85c1ff",
-                            old_files = NULL)
+                            old_files = NULL,
+                            mode = "strict")
   
   
   hide_tabs <- reactiveVal(0)
@@ -64,10 +67,10 @@ shinyServer(function(input, output, session) {
       ))
     }
     validate(need(length(input[["systems"]]) > 0, ""))
-    filters[["thresh"]] <- input[["identity"]]
     filters[["systems"]] <- input[["systems"]]
     filters[["presence_col"]] <- input[["presence_col"]]
     filters[["absence_col"]] <- input[["absence_col"]]
+    filters[["mode"]] <- input[["mode"]]
   })
   
   
@@ -111,7 +114,7 @@ shinyServer(function(input, output, session) {
         This window will disappear once calculations are completed.", 
       footer = NULL))
     
-    res <- run_analysis(input[["seq_file"]], input[["n_threads"]], identity = filters[["thresh"]])
+    res <- run_analysis(input[["seq_file"]], input[["n_threads"]])
     hide_tabs(1)
     filters[["old_input"]] <- input[["seq_file"]]
     removeModal()

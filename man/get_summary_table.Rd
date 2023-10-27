@@ -8,7 +8,8 @@ get_summary_table(presence_table, hide_absent = FALSE)
 }
 \arguments{
 \item{presence_table}{a data frame with gene presence/absence obtained 
-using \code{\link{get_presence_table}} function}
+using \code{\link{get_presence_table_strict}} or \code{\link{get_presence_table_relaxed}}
+function}
 
 \item{hide_absent}{\code{logical} indicating if columns representing 
 systems that were not found in any file should be displayed. By default

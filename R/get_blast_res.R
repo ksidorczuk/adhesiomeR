@@ -81,7 +81,7 @@ get_blast_res <- function(input_file_list, n_threads = 1, blast_dir = Sys.which(
 #' @seealso get_blast_res
 #' @importFrom dplyr last
 #' @importFrom utils read.delim
-#' @export
+#' @noRd
 do_blast_single <- function(input_file, blast_dir = Sys.which("blastn")) {
   validate_input_file(input_file)
   db_path <- paste0(normalizePath(system.file(package = "adhesiomeR")), "/db/adhesins")

@@ -59,10 +59,10 @@ run_blast <- function(input_files, nt, updateProgress = NULL) {
 }
 
 
-run_analysis <- function(input_files, nt, identity = 75, updateProgress = NULL) {
+run_analysis <- function(input_files, nt, updateProgress = NULL) {
   blast_res <- run_blast(input_files, nt)
  # print(paste0("blast done"))
-  presence_table <- get_presence_table(blast_res, identity = identity, n_threads = nt)
+  presence_table <- get_presence_table_strict(blast_res, n_threads = nt)
  # print(paste0("presence done"))
   return(list("blast_results" = blast_res, 
               "presence_table" = presence_table))

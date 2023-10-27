@@ -13,7 +13,8 @@ get_system_plot(
 }
 \arguments{
 \item{presence_table}{a data frame with gene presence/absence obtained 
-using \code{\link{get_presence_table}} function}
+using \code{\link{get_presence_table_strict}} or \code{\link{get_presence_table_relaxed}}
+function}
 
 \item{system}{\code{character} string indicating a name of selected system}
 

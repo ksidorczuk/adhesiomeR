@@ -13,7 +13,8 @@ get_presence_plot(
 }
 \arguments{
 \item{presence_table}{a data frame with gene presence/absence obtained 
-using \code{\link{get_presence_table}} function}
+using \code{\link{get_presence_table_strict}} or \code{\link{get_presence_table_relaxed}} 
+function}
 
 \item{systems}{a character vector with names of the systems that should
 be shown on a heatmap. By default, all systems present in the database}

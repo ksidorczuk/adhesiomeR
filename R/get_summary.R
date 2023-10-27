@@ -4,7 +4,8 @@
 #' in analysed genomes. Each system is summarized as a percent of genes
 #' that were identified. 
 #' @param presence_table a data frame with gene presence/absence obtained 
-#' using \code{\link{get_presence_table}} function
+#' using \code{\link{get_presence_table_strict}} or \code{\link{get_presence_table_relaxed}}
+#' function
 #' @param hide_absent \code{logical} indicating if columns representing 
 #' systems that were not found in any file should be displayed. By default
 #' \code{FALSE}
@@ -105,7 +106,8 @@ get_summary_table <- function(presence_table, hide_absent = FALSE) {
 #' This function generates a heatmap showing the percent of genes found
 #' for each system in each analysed file. 
 #' @param presence_table a data frame with gene presence/absence obtained 
-#' using \code{\link{get_presence_table}} function
+#' using \code{\link{get_presence_table_strict}}
+#' or \code{\link{get_presence_table_relaxed}} function
 #' @param hide_absent \code{logical} indicating if columns representing 
 #' systems that were not found in any file should be displayed. By default
 #' \code{FALSE}
@@ -147,11 +149,3 @@ get_count_table <- function(presence_table) {
       System),
     gene_count = sum(Presence))
 }
-
-
-# get_word_cloud <- function(count_table) {
-#   count_table[["System"]] <- gsub(" Adhesin| Adhesins| Fimbriae", "", count_table[["System"]])
-#   wordcloud(count_table[["System"]], count_table[["gene_count"]], 
-#             colors = c("blue", "green", "red", "orange", "purple"),
-#             scale = c(3, 0.5), rot.per = 0.3)
-# }

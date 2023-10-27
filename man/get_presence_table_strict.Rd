@@ -35,6 +35,6 @@ copy counts, numbers of gene copies is presented.
 This function creates a presence/absence table using strict settings, i.e.
 bit score thresholds set specifically for each adhesin gene. These thresholds
 cannot be modified by the user. This function performs initial filtering of 
-the blast results according to bit score thresholds and calls 
-\code{\link{get_presence_table}} to create the gene presence/absence table.
+the blast results according to bit score thresholds and calls a function to 
+create the gene presence/absence table.
 }

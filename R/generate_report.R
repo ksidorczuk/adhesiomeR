@@ -1,11 +1,11 @@
 #' Generate a HTML report with the results
 #' 
 #' This function generates a HTML report with the results of a performed
-#' analysis, using an object obtained by \code{\link{get_presence_table}}
-#' function.
+#' analysis, using an object obtained by \code{\link{get_presence_table_strict}}
+#' or \code{\link{get_presence_table_relaxed}} function.
 #' 
-#' @param presence_table an object obtained by \code{\link{get_presence_table}}
-#' function.
+#' @param presence_table an object obtained by \code{\link{get_presence_table_strict}}
+#' or \code{\link{get_presence_table_relaxed}} function.
 #' @param elements a character vector of elements which should be included
 #' in the report. The available values are: \code{summary_table}, 
 #' \code{summary_plot}, \code{presence_table} and \code{presence_plot}.
@@ -24,13 +24,13 @@
 #' @param absence_col color of the tiles representing absent genes. Must be
 #' specified as a hex color code
 #' @return No return value, called for its side effects.
-#' @details This function uses object obtained by \code{get_presence_table}
-#' function to create files with the results, i.e., plots and/or tables, 
-#' depending on the selected elements. These files are placed in a newly 
-#' created directory together with the report file, which location and name
-#' may be specified using \code{outdir} argument. To get only the report file
-#' in a results directory, \code{remove_intermediate_files} argument may be
-#' used. 
+#' @details This function uses object obtained by \code{get_presence_table_strict}
+#' or \code{\link{get_presence_table_relaxed}} function to create files with the 
+#' results, i.e., plots and/or tables, depending on the selected elements. These 
+#' files are placed in a newly created directory together with the report file, 
+#' which location and name may be specified using \code{outdir} argument. To get 
+#' only the report file in a results directory, \code{remove_intermediate_files} 
+#' argument may be used. 
 #' 
 #' The \code{elements} available to include in a report are:
 #' \itemize{

@@ -43,6 +43,5 @@ copy counts, numbers of gene copies is presented.
 This function creates a presence/absence table using relaxed settings, i.e.
 identity and coverage thresholds that may be modified by the user. This 
 function performs initial filtering of the blast results according to set 
-thresholds and calls \code{\link{get_presence_table}} to create the gene 
-presence/absence table.
+thresholds and calls a function to create the gene presence/absence table.
 }

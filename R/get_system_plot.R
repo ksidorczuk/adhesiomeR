@@ -3,7 +3,8 @@
 #' This function creates a heatmap indicating gene presence/absence for one
 #' selected system. 
 #' @param presence_table a data frame with gene presence/absence obtained 
-#' using \code{\link{get_presence_table}} function
+#' using \code{\link{get_presence_table_strict}} or \code{\link{get_presence_table_relaxed}}
+#' function
 #' @param system \code{character} string indicating a name of selected system
 #' @param presence_col color of the tiles representing present genes. Must be
 #' specified as a hex color code

@@ -19,7 +19,7 @@
 #' semicolons without spaces, e.g. \code{Adhesins~aggR~NC_019000.1:48472-49269~AA/I_Fimbriae;
 #' AA/II_Fimbriae;AA/III_Fimbriae}.
 #' @importFrom dplyr mutate
-#' @export
+#' @noRd
 #' @examples 
 #' get_genes_in_systems_db(system.file("./data/Adhesins_sequences.txt", package = "adhesiomeR"))
 #' 

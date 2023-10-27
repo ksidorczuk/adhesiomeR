@@ -2,25 +2,21 @@
 % Please edit documentation in R/clustering.R
 \name{get_adhesin_profiles}
 \alias{get_adhesin_profiles}
-\title{Assign genomes to adhesin profile clusters}
+\title{Assign genomes to adhesin profiles}
 \usage{
-get_adhesin_profiles(new_results, model_all, model_fimbrial, model_nonfimbrial)
+get_adhesin_profiles(new_results, profiles = adhesiomeR::profiles)
 }
 \arguments{
 \item{new_results}{a data frame of gene presence/absence generated using 
-\code{\link{get_presence_table}}}
+\code{\link{get_presence_table_strict}}}
 
-\item{model_all}{clustering based on all adhesins}
-
-\item{model_fimbrial}{clustering based on fimbrial adhesins}
-
-\item{model_nonfimbrial}{clustering based on nonfimbrial adhesins}
+\item{profiles}{a list of data frames with profiles for each subset of genes}
 }
 \value{
 a data frame with four columns containing file name and assignments
-to clusters for three types of clustering (all adhesins, fimbrial, nonfimbrial).
+to profiles for three types of clustering (all adhesins, fimbrial, nonfimbrial).
 }
 \description{
-Assigns analysed genomes to adhesin profile clusters using three subsets of genes:
+Assigns analysed genomes to adhesin profiles using three subsets of genes:
 all adhesins, fimbrial adhesins, nonfimbrial adhesins.
 }

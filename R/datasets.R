@@ -70,3 +70,12 @@ NULL
 #' @format object of type clara, partition 
 #' @keywords datasets
 NULL
+
+#' @name profiles
+#' @title Adhesin profiles
+#' @description Adhesin profiles based on all, fimbrial and nonfimbrial subsets
+#' of adhesin genes
+#' @docType data
+#' @format list of three data frames with profiles
+#' @keywords datasets
+NULL
