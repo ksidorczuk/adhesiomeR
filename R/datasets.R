@@ -31,6 +31,27 @@ NULL
 #' @keywords datasets
 NULL
 
+#' @name df_genes
+#' @title adhesiomeR genes information
+#' @description A data frame with information about all genes in adhesiomeR
+#' database, including system to which it belongs, sequence accession and 
+#' function/class with references.
+#' @docType data
+#' @format a data frame
+#' @keywords datasets
+NULL
+
+#' @name df_systems
+#' @title adhesiomeR system information
+#' @description A data frame with information about all systems in adhesiomeR
+#' database, including its alternative names, type (fimbrial or nonfimbrial),
+#' morphology (for fimbrial adhesins), biosynthesis/secretion pathway and
+#' short description with references.
+#' @docType data
+#' @format a data frame
+#' @keywords datasets
+NULL
+
 #' @name adhesins_lengths
 #' @title Adhesins gene length data frame
 #' @description A data frame containing sequence length of each gene

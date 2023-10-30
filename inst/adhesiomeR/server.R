@@ -16,12 +16,13 @@ library(parallel)
 pkgload::load_all()
 source("shiny-utils.R")
 
-data(adhesins_df)
-#data(UMAP_data)
+#data(adhesins_df)
+
 
 #source("shiny-utils.R")
 
 options(shiny.maxRequestSize=10*1024^2)
+
 
 shinyServer(function(input, output, session) {
   
@@ -30,8 +31,7 @@ shinyServer(function(input, output, session) {
   filters <- reactiveValues(systems = unique(adhesins_df[["System"]]),
                             presence_col = "#e00e00",
                             absence_col = "#85c1ff",
-                            old_files = NULL,
-                            mode = "strict")
+                            old_files = NULL)
   
   
   hide_tabs <- reactiveVal(0)
@@ -43,7 +43,8 @@ shinyServer(function(input, output, session) {
       hideTab("adhesiomer", "all_genes")
       hideTab("adhesiomer", "systems")
       hideTab("adhesiomer", "summary_plot")
-      hideTab("adhesiomer", "clustering")
+      hideTab("adhesiomer", "clusters")
+      hideTab("adhesiomer", "profiles")
       hideTab("adhesiomer", "report")
     } else {
       showTab("adhesiomer", "blast_res")
@@ -51,31 +52,21 @@ shinyServer(function(input, output, session) {
       showTab("adhesiomer", "all_genes")
       showTab("adhesiomer", "systems")
       showTab("adhesiomer", "summary_plot")
-      showTab("adhesiomer", "clustering")
+      showTab("adhesiomer", "clusters")
+      showTab("adhesiomer", "profiles")
       showTab("adhesiomer", "report")
     }
   })
   
   
   observeEvent(input[["filtering_button"]], {
-    if(length(input[["systems"]]) < 1) {
-      showModal(modalDialog(
-        title = "Select at least one system!",
-        "You have to select at least one system for the filtering to work.",
-        easyClose = TRUE,
-        footer = modalButton("OK")
-      ))
-    }
-    validate(need(length(input[["systems"]]) > 0, ""))
-    filters[["systems"]] <- input[["systems"]]
     filters[["presence_col"]] <- input[["presence_col"]]
     filters[["absence_col"]] <- input[["absence_col"]]
-    filters[["mode"]] <- input[["mode"]]
   })
   
   
   output[["adhesins"]] <- renderDataTable({
-    my_DT(adhesins_df)
+    my_DT(df_genes)
   })
   
   output[["input_tab"]] <- renderDataTable({
@@ -86,10 +77,10 @@ shinyServer(function(input, output, session) {
   
   analysis_results <- eventReactive(input[["blast"]], {
     req(input[["seq_file"]])
-    if(length(input[["seq_file"]][["name"]]) > 100) {
+    if(length(input[["seq_file"]][["name"]]) > 10) {
       showModal(modalDialog(
         title = "Too many files!",
-        "You can analyse up to 100 files at once using the GUI. For larger analyses please use
+        "You can analyse up to 10 files at once using the GUI. For larger analyses please use
           the command-line interface of the adhesiomeR package.",
         easyClose = TRUE,
         footer = modalButton("OK")
@@ -107,7 +98,7 @@ shinyServer(function(input, output, session) {
     } 
     req(!(all(input[["seq_file"]][["name"]] %in% filters[["old_input"]][["name"]])) &
           length(input[["seq_file"]][["name"]] != length(filters[["old_input"]][["name"]])) &
-          length(input[["seq_file"]][["name"]]) <= 100)
+          length(input[["seq_file"]][["name"]]) <= 10)
     showModal(modalDialog(
       title = "Running analysis...",
       "Please be patient - the calculations may take a few minutes.
@@ -122,6 +113,10 @@ shinyServer(function(input, output, session) {
   })
   
   
+  output[["systems_df"]] <- renderDataTable({
+    my_DT(df_systems, options = list(initComplete = JS(js)))
+  })
+
   presence_tab <- reactive({
     #  validate(need(input[["blast"]], "Please run BLAST to see the results."))
     analysis_results()[[2]]
@@ -144,6 +139,13 @@ shinyServer(function(input, output, session) {
     #my_DT(data.frame(blast_results()))
   })
   
+  output[["profile_table"]] <- renderDataTable({
+    my_DT(get_adhesin_profiles(presence_tab()))
+  })
+  
+  output[["cluster_table"]] <- renderDataTable({
+    my_DT(get_adhesin_clusters(presence_tab()))
+  })
   
   output[["presence_table"]] <- renderDataTable({
     my_DT(presence_tab())
@@ -154,9 +156,6 @@ shinyServer(function(input, output, session) {
       my_DT()
   })
   
-  output[["clustering_plot"]] <- renderPlot({
-    plot_clustering(clustering_plot_dat(), show_labels = input[["clustering_labels"]], pathotypes = input[["pathotype"]])
-  })
   
   summary_table <- reactive({
     get_summary_table(presence_tab(), hide_absent = input[["systems_summary_hide_missing"]])

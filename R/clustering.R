@@ -25,14 +25,20 @@ get_cluster <- function(model, new_data_single) {
 #' @return a data frame with four columns containing file name and assignments
 #' to clusters for three types of clustering (all adhesins, fimbrial, nonfimbrial).
 #' @export
-get_adhesin_clusters <- function(new_results, model_all, model_fimbrial, model_nonfimbrial) {
+get_adhesin_clusters <- function(new_results, 
+                                 model_all = adhesiomeR::clustering_all, 
+                                 model_fimbrial = adhesiomeR::clustering_fimbrial, 
+                                 model_nonfimbrial = adhesiomeR::clustering_nonfimbrial) {
   do.call(rbind, 
           lapply(1:nrow(new_results), function(i) {
             new_x <- new_results[which(colnames(new_results) != "File")][i,]
             data.frame(File = new_results[i,][["File"]],
-                       Adhesins_cluster = get_cluster(model_all, new_x[which(colnames(new_x) %in% colnames(model_all[["data"]]))]),
-                       Fimbrial_cluster = get_cluster(model_fimbrial, new_x[which(colnames(new_x) %in% colnames(model_fimbrial[["data"]]))]),
-                       Nonfimbrial_cluster = get_cluster(model_nonfimbrial, new_x[which(colnames(new_x) %in% colnames(model_nonfimbrial[["data"]]))]))
+                       Adhesins_cluster = c("A-G", "A-I", "A-E", "A-C", "A-A","A-D", "A-J", "A-B", "A-F", "A-H")
+                       [get_cluster(model_all, new_x[which(colnames(new_x) %in% colnames(model_all[["data"]]))])],
+                       Fimbrial_cluster = c("F-F", "F-G", "F-A", "F-D", "F-C", "F-E", "F-H", "F-B")
+                       [get_cluster(model_fimbrial, new_x[which(colnames(new_x) %in% colnames(model_fimbrial[["data"]]))])],
+                       Nonfimbrial_cluster = c("N-A", "N-D", "N-C", "N-B", "N-E")
+                       [get_cluster(model_nonfimbrial, new_x[which(colnames(new_x) %in% colnames(model_nonfimbrial[["data"]]))])])
           })) 
 }
 
@@ -48,8 +54,8 @@ get_adhesin_clusters <- function(new_results, model_all, model_fimbrial, model_n
 #' @export
 get_adhesin_profiles <- function(new_results, profiles = adhesiomeR::profiles) {
   data.frame(File = new_results[["File"]],
-             A_profile = suppressMessages(left_join(new_results, profiles[["A"]])[["A_profile"]]),
-             F_profile = suppressMessages(left_join(new_results, profiles[["F"]])[["F_profile"]]),
-             N_profile = suppressMessages(left_join(new_results, profiles[["N"]])[["N_profile"]]))
+             Adhesins_profile = suppressMessages(left_join(new_results, profiles[["A"]])[["A_profile"]]),
+             Fimbrial_profile = suppressMessages(left_join(new_results, profiles[["F"]])[["F_profile"]]),
+             Nonfimbrial_profile = suppressMessages(left_join(new_results, profiles[["N"]])[["N_profile"]]))
 }
 

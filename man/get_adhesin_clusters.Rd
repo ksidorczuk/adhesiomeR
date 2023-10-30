@@ -4,7 +4,12 @@
 \alias{get_adhesin_clusters}
 \title{Assign genomes to adhesin profile clusters}
 \usage{
-get_adhesin_clusters(new_results, model_all, model_fimbrial, model_nonfimbrial)
+get_adhesin_clusters(
+  new_results,
+  model_all = adhesiomeR::clustering_all,
+  model_fimbrial = adhesiomeR::clustering_fimbrial,
+  model_nonfimbrial = adhesiomeR::clustering_nonfimbrial
+)
 }
 \arguments{
 \item{new_results}{a data frame of gene presence/absence generated using 
