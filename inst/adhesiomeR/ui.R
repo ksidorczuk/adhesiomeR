@@ -5,6 +5,7 @@ library(adhesiomeR)
 library(shinycssloaders)
 library(colourpicker)
 library(shinythemes)
+library(shinyhelper)
 
 data(adhesins_df)
 
@@ -14,9 +15,10 @@ shinyUI(tagList(
   navbarPage(theme = shinytheme("flatly"),
              title = "adhesiomeR",
              id = "adhesiomer",
-             tabPanel("Adhesin database",
+             tabPanel("About",
                       wellPanel(
-                        includeMarkdown("intro.md")),
+                        includeMarkdown("intro.md"))),
+             tabPanel("Adhesin database",
                       tabsetPanel(
                         tabPanel(h4("Genes"),
                                  wellPanel(
@@ -28,7 +30,7 @@ shinyUI(tagList(
                                    includeMarkdown(
                                      "systems_table.md")),
                                  dataTableOutput("systems_df")))),
-             tabPanel("Input & settings",
+             tabPanel("Analysis: Input & settings",
                       sidebarPanel(width = 4,
                                    fileInput("seq_file", 
                                              "Upload your genome file(s) in a FASTA format. You can process up to 10 files at once.",
@@ -49,11 +51,14 @@ shinyUI(tagList(
                                 dataTableOutput("input_tab"),
                                 textOutput("hidetabs"))
              ),
-             
              tabPanel("Search results",
+                      wellPanel("Here you can explore raw results of the BLAST search. 
+                                You can download the results by clicking on one of the buttons below."),
                       value = "blast_res",
                       dataTableOutput("blast_res")),
              tabPanel("Gene presence",
+                      wellPanel("This tab presents adhesiomeR results on gene level. The results are presented in a form of a plot and a table.
+                                You can also hide genes that were not found in any file from the plot."),
                       value = "all_genes",
                       tabsetPanel(
                         tabPanel("Plot",
@@ -82,10 +87,12 @@ shinyUI(tagList(
                       uiOutput("systems_plots")),
              tabPanel("Profiles",
                       value = "profiles",
+                      wellPanel(includeMarkdown("profiles.md")),
                       dataTableOutput("profile_table")),
              tabPanel("Clusters",
                       value = "clusters",
-                      dataTableOutput("cluster_table")),
+                      wellPanel("Here you can see assignment of analysed genomes to adhesin clusters. For detailed information about clusters, please click on the help button above the right corner of the table."),
+                      helper(dataTableOutput("cluster_table"), "", type = "markdown", content = "clusters", icon = "circle-question", size = "l")),
              tabPanel("Report",
                       value = "report",
                       checkboxGroupInput("elements",
@@ -94,8 +101,11 @@ shinyUI(tagList(
                                          choices = c("Table with percents of genes found in each system" = "summary_table",
                                                      "Plot with percents of genes found in each system" = "summary_plot",
                                                      "Table with gene presence/absence" = "presence_table",
-                                                     "Plot with gene presence/absence" = "presence_plot"),
-                                         selected = c("summary_table", "summary_plot", "presence_table", "presence_plot")),
+                                                     "Plot with gene presence/absence" = "presence_plot",
+                                                     "Table with profile assignments" = "profile_table",
+                                                     "Table with cluster assignments" = "cluster_table"),
+                                         selected = c("summary_table", "summary_plot", "presence_table", 
+                                                      "presence_plot", "profile_table", "cluster_table")),
                       h5(tags$b("Options: ")),
                       checkboxInput("report_hide_genes",
                                     width = 900,
@@ -111,9 +121,9 @@ shinyUI(tagList(
              
   ),
   tags$style(type='text/css',
-        #      HTML(".dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter, .dataTables_wrapper .dataTables_info, .dataTables_wrapper .dataTables_processing,.dataTables_wrapper .dataTables_paginate .paginate_button, .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
-        #     color: #0000ff !important;
-        # }"),
+             #      HTML(".dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter, .dataTables_wrapper .dataTables_info, .dataTables_wrapper .dataTables_processing,.dataTables_wrapper .dataTables_paginate .paginate_button, .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+             #     color: #0000ff !important;
+             # }"),
              HTML(".dataTables_wrapper .dataTables_paginate .paginate_button {color: #4A7443}"))
 )
 )

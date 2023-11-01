@@ -22,9 +22,11 @@ source("shiny-utils.R")
 #source("shiny-utils.R")
 
 options(shiny.maxRequestSize=10*1024^2)
-
+options(htmlwidgets.TOJSON_ARGS = list(na = 'string'))
 
 shinyServer(function(input, output, session) {
+  
+  observe_helpers(withMathJax = TRUE, help_dir = ".")
   
   all_systems <- unique(adhesins_df[["System"]])
   
@@ -174,7 +176,11 @@ shinyServer(function(input, output, session) {
   
   absent_systems <- reactive({
     summary_tab <- get_summary_table(presence_tab())
-    colnames(summary_tab)[sapply(colnames(summary_tab), function(i) ifelse(all(summary_tab[[i]] == "Absent"), TRUE, FALSE))]
+    absent <- colnames(summary_tab)[sapply(colnames(summary_tab), function(i) ifelse(all(summary_tab[[i]] == "Absent"), TRUE, FALSE))]
+    if("CS27A/CS27B" %in% absent) {
+      absent <- c(absent, "CS27A", "CS27B")
+    }
+    absent
   })
   
   
@@ -207,7 +213,7 @@ shinyServer(function(input, output, session) {
   
   observe({
     plot_system_dat <- reactive({
-      df <- left_join(presence_plot_dat(), adhesins_df_grouped, by = "Gene")
+      df <- left_join(presence_plot_dat(), adhesins_df_grouped, by = "Gene", relationship = "many-to-many")
       if(input[["systems_hide_missing"]] == TRUE) {
         df <- filter(df, !(System %in% absent_systems()))
       }
@@ -266,7 +272,7 @@ shinyServer(function(input, output, session) {
                                params = list(genome_files, outdir, elements))
       
       fl <- list.files(outdir, full.names = TRUE)
-      sapply(c("summary_table.csv", "summary_plot.png", "presence_table.csv", "presence_plot.png"), function(i)
+      sapply(c("summary_table.csv", "summary_plot.png", "presence_table.csv", "presence_plot.png", "cluster_table.csv", "profile_table.csv"), function(i)
         invisible(file.remove(fl[grepl(i, fl)])))
       file.rename(out, file)
     }

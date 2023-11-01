@@ -1,6 +1,6 @@
-options(DT.options = list(dom = "Brtip",
+options(DT.options = list(dom = "Brti",
                           buttons = c("copy", "csv", "excel", "print"),
-                          pageLength = 50, autoWidth = TRUE, bAutoWidth = FALSE
+                          pageLength = 10000, autoWidth = TRUE, bAutoWidth = FALSE
 ))
 
 my_DT <- function(x, ...)

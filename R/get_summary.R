@@ -47,7 +47,6 @@ get_summary_table <- function(presence_table, hide_absent = FALSE) {
                        "Absent", `Afa-III`),
     F1845 = ifelse(`Afa-I` == "Partial" & `Afa-III` == "Partial" & F1845 == "Partial" & Dr == "Present",
                    "Absent", F1845),
-    Intimin = ifelse(Intimin == "Partial" & eae == 0, "Absent", Intimin),
     CS1 = ifelse(CS17 == "Present" | CS19 == "Present" | PCF071 == "Present",
                  "Absent", CS1),
     CS17 = ifelse(CS1 == "Present" | CS19 == "Present" | PCF071 == "Present",
