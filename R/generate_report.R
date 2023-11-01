@@ -8,7 +8,8 @@
 #' or \code{\link{get_presence_table_relaxed}} function.
 #' @param elements a character vector of elements which should be included
 #' in the report. The available values are: \code{summary_table}, 
-#' \code{summary_plot}, \code{presence_table} and \code{presence_plot}.
+#' \code{summary_plot}, \code{presence_table}, \code{presence_plot},
+#' \code{profile_table} and \code{cluster_table}.
 #' By default, all elements are used.
 #' @param outdir a string indicating the path and name of the directory,
 #' in which the report will be generated.
@@ -34,21 +35,25 @@
 #' 
 #' The \code{elements} available to include in a report are:
 #' \itemize{
-#'   \item{summary_table}{ table with percents of genes found in each system}
-#'   \item{summary_plot}{ plot with percents of genes found in each system}
+#'   \item{summary_table}{ table with system presence}
+#'   \item{summary_plot}{ plot with system presence}
 #'   \item{presence_table}{ table with gene presence/absence}
-#'   \item{presence_plot}{ plot with gene presence/absence.}}
+#'   \item{presence_plot}{ plot with gene presence/absence.}
+#'   \item{profile_table}{ table with adhesin profile assignments.}
+#'   \item{cluster_table}{ table with adhesin cluster assignments.}}
 #' @importFrom rmarkdown render
 #' @importFrom utils write.csv
 #' @export
 generate_report <- function(presence_table, elements = c("summary_table", "summary_plot", 
-                                                         "presence_table", "presence_plot"),
+                                                         "presence_table", "presence_plot",
+                                                         "profile_table", "cluster_table"),
                             outdir = NULL, remove_intermediate_files = FALSE, hide_absent_genes = FALSE,
                             hide_absent_systems = FALSE, presence_col = "#e42b24", absence_col = "#85c1ff") {
   
   if(is.null(elements) | !all(elements %in% c("summary_table", "summary_plot", 
-                                              "presence_table", "presence_plot"))) {
-    stop("Incorrect elements selected. The 'elements' argument may contain only the following items: 'summary_table', 'summary_plot', 'presence_table', 'presence_plot'. Please make sure that you use at least one of these items.")
+                                              "presence_table", "presence_plot",
+                                              "profile_table", "cluster_table"))) {
+    stop("Incorrect elements selected. The 'elements' argument may contain only the following items: 'summary_table', 'summary_plot', 'presence_table', 'presence_plot', 'profile_table', 'cluster_table'. Please make sure that you use at least one of these items.")
   }
   
   # Create output directory for a report
@@ -67,7 +72,8 @@ generate_report <- function(presence_table, elements = c("summary_table", "summa
   
   # Generate the files specified by the 'elements' argument
   generate_report_files(presence_table, elements = c("summary_table", "summary_plot", 
-                                                     "presence_table", "presence_plot"), 
+                                                     "presence_table", "presence_plot",
+                                                     "profile_table", "cluster_table"), 
                         outdir = outdir, hide_absent_genes = hide_absent_genes, 
                         hide_absent_systems = hide_absent_systems,
                         presence_col = presence_col, absence_col = absence_col)

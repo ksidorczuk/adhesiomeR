@@ -33,7 +33,7 @@ more details).
 ### Adhesin database
 
 AdhesiomeR includes the most comprehensive database of adhesins to allow characterization
-of the full E. coli adhesiomes with high confidence. It includes **527 adhesin genes**
+of the full E. coli adhesiomes with high confidence. It includes **525 adhesin genes**
 combined into **102 systems**, where system indicates a whole operon by which given
 adhesin is encoded in case of fimbrial adhesins, or a single gene in case of autotransporters
 and other nonfimbrial adhesins encoded by a single gene.

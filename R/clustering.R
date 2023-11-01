@@ -54,8 +54,8 @@ get_adhesin_clusters <- function(new_results,
 #' @export
 get_adhesin_profiles <- function(new_results, profiles = adhesiomeR::profiles) {
   data.frame(File = new_results[["File"]],
-             Adhesins_profile = suppressMessages(left_join(new_results, profiles[["A"]])[["A_profile"]]),
-             Fimbrial_profile = suppressMessages(left_join(new_results, profiles[["F"]])[["F_profile"]]),
-             Nonfimbrial_profile = suppressMessages(left_join(new_results, profiles[["N"]])[["N_profile"]]))
+             Adhesins_profile = suppressMessages(left_join(new_results, profiles[["A"]])[["Adhesins_profile"]]),
+             Fimbrial_profile = suppressMessages(left_join(new_results, profiles[["F"]])[["Fimbrial_profile"]]),
+             Nonfimbrial_profile = suppressMessages(left_join(new_results, profiles[["N"]])[["Nonfimbrial_profile"]]))
 }
 

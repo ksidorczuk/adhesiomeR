@@ -2,7 +2,7 @@
 title: "adhesiomeR analysis report"
 output:
   html_document:
-    theme: simplex
+    theme: flatly
     self_contained: true
     toc: true
 ---
@@ -24,9 +24,12 @@ img {
 ```{r, results='asis', echo=FALSE, out.height=1800}
 
 md_DT <- function(df) {
-  DT::datatable(df, extensions = 'FixedColumns', filter = "top", rownames = FALSE, style = "bootstrap",
-            options = list(dom = 't', scrollX = TRUE, scrollCollapse = TRUE,
-                           scrollY = "700px", paging = FALSE, fixedColumns = list(leftColumns = 1)))
+  DT::formatStyle(DT::datatable(df, extensions = c('FixedColumns', 'Buttons'),
+                                filter = "top", rownames = FALSE, style = "bootstrap",
+            options = list(dom = 'Bt', scrollX = TRUE, scrollCollapse = TRUE,
+                           buttons = c("copy", "csv", "excel", "print"),
+                           scrollY = "700px", paging = FALSE, fixedColumns = list(leftColumns = 1))),
+            columns = colnames(df), fontSize = '80%')
 }
 
 cat(paste0("\n\n**Date**: ", Sys.time()), "\n\n")
@@ -35,7 +38,7 @@ cat("## Analysed input files\n\n")
 md_DT(data.frame(`File name` = genome_files, check.names = FALSE))
 cat("\n\n")
 if(any(c("presence_table", "presence_plot") %in% elements)) {
-  cat("\n\n## Analysis on gene level\n\n### Gene presence/absence")
+  cat("\n\n## Analysis on gene level\n\n")
 }
 
 if("presence_table" %in% elements) {
@@ -55,7 +58,7 @@ if("presence_plot" %in% elements) {
 ```{r, results='asis', echo=FALSE, out.width = 900}
 
 if(any(c("summary_table", "summary_plot") %in% elements)) {
-  cat("## Analysis on system level\n\n### Percent of found genes\n\n")
+  cat("## Analysis on system level\n\n")
 }
 
 if("summary_table" %in% elements) {
@@ -72,6 +75,33 @@ if("summary_plot" %in% elements) {
 
 ```
 
+```{r, results='asis', echo=FALSE, out.width = 900}
+
+if("profile_table" %in% elements) {
+  cat("## Adhesin profiles\n\n")
+}
+
+if("profile_table" %in% elements) {
+  cat("\n\n")
+  profile_tab <- read.csv(paste0(outdir, "/profile_table.csv"), check.names = FALSE)
+  md_DT(profile_tab)
+}
+
+```
+
+```{r, results='asis', echo=FALSE, out.width = 900}
+
+if("cluster_table" %in% elements) {
+  cat("## Adhesin clusters\n\n")
+}
+
+if("cluster_table" %in% elements) {
+  cat("\n\n")
+  cluster_tab <- read.csv(paste0(outdir, "/cluster_table.csv"), check.names = FALSE)
+  md_DT(cluster_tab)
+}
+
+```
 
 ## About
 

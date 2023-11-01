@@ -50,7 +50,8 @@ plot_theme <- function() {
 #' @importFrom ggplot2 ggsave theme
 #' @noRd
 generate_report_files <- function(presence_table, elements = c("summary_table", "summary_plot", 
-                                                               "presence_table", "presence_plot"), 
+                                                               "presence_table", "presence_plot",
+                                                               "profile_table", "cluster_table"), 
                                   outdir = ".", hide_absent_genes = FALSE, hide_absent_systems = FALSE, 
                                   presence_col = "#e42b24", absence_col = "#85c1ff") {
   
@@ -86,6 +87,16 @@ generate_report_files <- function(presence_table, elements = c("summary_table", 
       theme(legend.position = "right")
     ggsave(paste0(outdir, "/presence_plot.png"), presence_plot,
            width = 50+5*nrow(plot_dat), height = 80 + 3*ncol(plot_dat), units = "mm", limitsize = FALSE)
+  }
+  
+  if("profile_table" %in% elements) {
+    profile_table <- get_adhesin_profiles(presence_table)
+    write.csv(profile_table, paste0(outdir, "/profile_table.csv"), row.names = FALSE)
+  }
+  
+  if("cluster_table" %in% elements) {
+    cluster_table <- get_adhesin_clusters(presence_table)
+    write.csv(cluster_table, paste0(outdir, "/cluster_table.csv"), row.names = FALSE)
   }
 }
 
