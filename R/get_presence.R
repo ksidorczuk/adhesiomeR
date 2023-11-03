@@ -93,7 +93,7 @@ get_presence_table <- function(blast_res, all_blast_res, add_missing = TRUE, cou
   
   # Check for files without found genes
   files_to_add <- unique(blast_res[["File"]])[which(!(unique(blast_res[["File"]]) %in% unique(final_res[["File"]])))]
-  if(length(files_to_add) > 0) {
+  final_results <- if(length(files_to_add) > 0) {
     rbind(final_res, 
           setNames(
             cbind(data.frame("File" = files_to_add),
@@ -102,6 +102,8 @@ get_presence_table <- function(blast_res, all_blast_res, add_missing = TRUE, cou
   } else {
     final_res
   }
+  attr(final_results, "search_version") <- "strict" 
+  final_results
 }
 
 #' Get presence table using relaxed settings
@@ -139,8 +141,12 @@ get_presence_table_relaxed <- function(blast_res, add_missing = TRUE, count_copi
   blast_res_lens[["Subject coverage"]] <- blast_res_lens[["Alignment length"]]/blast_res_lens[["Length"]]*100
   all_blast_res <- filter(blast_res_lens, `% identity` > identity & `Subject coverage` > coverage)
   
-  get_presence_table(blast_res, all_blast_res, add_missing = add_missing, count_copies = count_copies, n_threads = n_threads)
+  final_results <- get_presence_table(blast_res, all_blast_res, add_missing = add_missing, count_copies = count_copies, n_threads = n_threads)
   
+  attr(final_results, "search_version") <- "relaxed" 
+  attr(final_results, "identity_threshold") <- identity
+  attr(final_results, "coverage_threshold") <- coverage
+  final_results
 } 
 
 

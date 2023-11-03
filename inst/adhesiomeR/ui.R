@@ -38,6 +38,9 @@ shinyUI(tagList(
                                    ),
                                    actionButton("blast", "Run analysis!"),
                                    HTML("<hr>"),
+                                   # h5(tags$b("Load example results")),
+                                   # actionButton("example", "Load example"),
+                                   # HTML("<hr>"),
                                    h5(tags$b("Customise plot colors: ")),
                                    fluidRow(column(4,
                                                    colourInput("presence_col", "Presence",
@@ -69,6 +72,11 @@ shinyUI(tagList(
                         tabPanel("Table",
                                  dataTableOutput("presence_table")))),
              tabPanel("System presence",
+                      wellPanel("This tab presents adhesiomeR results on system level. The results are presented in a form of a plot and a table.
+                                You can also hide systems that were not found in any file from the plot.\n
+                                Present - all genes of the system were found,\n
+                                Partial - at least one gene of the system was found but not all of them,\n
+                                Absent - none of the genes of the system were found."),
                       value = "summary_plot",
                       tabsetPanel(
                         tabPanel("Plot",
@@ -80,9 +88,11 @@ shinyUI(tagList(
                                  dataTableOutput("systems_summary_table"))
                       )),
              tabPanel("Gene/system presence",
+                      wellPanel("This tab presents adhesiomeR results for each system separately in a form of a plot.
+                                You can also hide plots for systems that were not found in any file."),
                       value = "systems",
                       checkboxInput("systems_hide_missing",
-                                    "Hide systems not found in any genome.",
+                                    "Hide systems with genes not found in any genome.",
                                     value = TRUE),
                       uiOutput("systems_plots")),
              tabPanel("Profiles",
@@ -94,6 +104,9 @@ shinyUI(tagList(
                       wellPanel("Here you can see assignment of analysed genomes to adhesin clusters. For detailed information about clusters, please click on the help button above the right corner of the table."),
                       helper(dataTableOutput("cluster_table"), "", type = "markdown", content = "clusters", icon = "circle-question", size = "l")),
              tabPanel("Report",
+                      wellPanel("In this tab you can generate an HTML report of your analyses. To do that, please select elements you would like to 
+                                include in the report below, specify plot options and click the download button. Please be patient while the report 
+                                is being generated."),
                       value = "report",
                       checkboxGroupInput("elements",
                                          width = 900,

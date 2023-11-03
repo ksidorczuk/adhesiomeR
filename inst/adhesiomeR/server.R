@@ -22,7 +22,6 @@ source("shiny-utils.R")
 #source("shiny-utils.R")
 
 options(shiny.maxRequestSize=10*1024^2)
-options(htmlwidgets.TOJSON_ARGS = list(na = 'string'))
 
 shinyServer(function(input, output, session) {
   
@@ -78,42 +77,43 @@ shinyServer(function(input, output, session) {
   
   
   analysis_results <- eventReactive(input[["blast"]], {
-    req(input[["seq_file"]])
-    if(length(input[["seq_file"]][["name"]]) > 10) {
-      showModal(modalDialog(
-        title = "Too many files!",
-        "You can analyse up to 10 files at once using the GUI. For larger analyses please use
+      req(input[["seq_file"]])
+      if(length(input[["seq_file"]][["name"]]) > 10) {
+        showModal(modalDialog(
+          title = "Too many files!",
+          "You can analyse up to 10 files at once using the GUI. For larger analyses please use
           the command-line interface of the adhesiomeR package.",
-        easyClose = TRUE,
-        footer = modalButton("OK")
-      ))
-    }
-    if(all(input[["seq_file"]][["name"]] %in% filters[["old_input"]][["name"]]) &
-       length(input[["seq_file"]][["name"]] == length(filters[["old_input"]][["name"]]))) {
-      showModal(modalDialog(
-        title = "You already have results for these files",
-        "Uploaded files did not change since the last BLAST analysis. If you wish to analyse more 
+          easyClose = TRUE,
+          footer = modalButton("OK")
+        ))
+      }
+      if(all(input[["seq_file"]][["name"]] %in% filters[["old_input"]][["name"]]) &
+         length(input[["seq_file"]][["name"]] == length(filters[["old_input"]][["name"]]))) {
+        showModal(modalDialog(
+          title = "You already have results for these files",
+          "Uploaded files did not change since the last BLAST analysis. If you wish to analyse more 
           or different files, please be sure to upload them first.",
-        easyClose = TRUE,
-        footer = modalButton("OK")
-      ))
-    } 
-    req(!(all(input[["seq_file"]][["name"]] %in% filters[["old_input"]][["name"]])) &
-          length(input[["seq_file"]][["name"]] != length(filters[["old_input"]][["name"]])) &
-          length(input[["seq_file"]][["name"]]) <= 10)
-    showModal(modalDialog(
-      title = "Running analysis...",
-      "Please be patient - the calculations may take a few minutes.
+          easyClose = TRUE,
+          footer = modalButton("OK")
+        ))
+      } 
+      req(!(all(input[["seq_file"]][["name"]] %in% filters[["old_input"]][["name"]])) &
+            length(input[["seq_file"]][["name"]] != length(filters[["old_input"]][["name"]])) &
+            length(input[["seq_file"]][["name"]]) <= 10)
+      showModal(modalDialog(
+        title = "Running analysis...",
+        "Please be patient - the calculations may take a few minutes.
         This window will disappear once calculations are completed.", 
-      footer = NULL))
-    
-    res <- run_analysis(input[["seq_file"]], input[["n_threads"]])
-    hide_tabs(1)
-    filters[["old_input"]] <- input[["seq_file"]]
-    removeModal()
-    res
-  })
-  
+        footer = NULL))
+      
+      res <- run_analysis(input[["seq_file"]], input[["n_threads"]])
+      hide_tabs(1)
+      filters[["old_input"]] <- input[["seq_file"]]
+      removeModal()
+      res
+    })
+   
+
   
   output[["systems_df"]] <- renderDataTable({
     my_DT(df_systems, options = list(initComplete = JS(js)))
@@ -142,7 +142,13 @@ shinyServer(function(input, output, session) {
   })
   
   output[["profile_table"]] <- renderDataTable({
-    my_DT(get_adhesin_profiles(presence_tab()))
+    my_DT(get_adhesin_profiles(presence_tab()), 
+          options = list(columnDefs = list(list(
+            targets = 1:2, 
+            render = JS(
+            "function(data, type, row, meta) {",
+            "return data === null ? 'NA' : data;",
+            "}")))))
   })
   
   output[["cluster_table"]] <- renderDataTable({
@@ -269,7 +275,7 @@ shinyServer(function(input, output, session) {
       elements <- input[["elements"]]
       out <- rmarkdown::render("adhesiomeR-report.Rmd", output_format = "html_document",
                                file, quiet = TRUE,
-                               params = list(genome_files, outdir, elements))
+                               params = list(genome_files = genome_files, outdir = outdir, selected_elements = elements, presence_table = presence_tab()))
       
       fl <- list.files(outdir, full.names = TRUE)
       sapply(c("summary_table.csv", "summary_plot.png", "presence_table.csv", "presence_plot.png", "cluster_table.csv", "profile_table.csv"), function(i)

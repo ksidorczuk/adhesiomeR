@@ -5,102 +5,126 @@ output:
     theme: flatly
     self_contained: true
     toc: true
+params:
+  genome_files: ""
+  outdir: ""
+  selected_elements: ""
+  presence_table: ""
 ---
 
 <style>
 img {
-    max-width: none;
+max-width: none;
 
-    /* other options:
-    max-width: 200%;
-    max-width: 700px;
-    max-width: 9in;
-    max-width: 25cm;
-    etc
-    */
+/* other options:
+max-width: 200%;
+max-width: 700px;
+max-width: 9in;
+max-width: 25cm;
+etc
+*/
 }
 </style>
 
 ```{r, results='asis', echo=FALSE, out.height=1800}
 
-md_DT <- function(df) {
-  DT::formatStyle(DT::datatable(df, extensions = c('FixedColumns', 'Buttons'),
+md_DT <- function(df, ...) {
+  DT::formatStyle(DT::datatable(df, ..., extensions = c('FixedColumns', 'Buttons'),
                                 filter = "top", rownames = FALSE, style = "bootstrap",
-            options = list(dom = 'Bt', scrollX = TRUE, scrollCollapse = TRUE,
-                           buttons = c("copy", "csv", "excel", "print"),
-                           scrollY = "700px", paging = FALSE, fixedColumns = list(leftColumns = 1))),
-            columns = colnames(df), fontSize = '80%')
+                                options = list(dom = 'Bt', scrollX = TRUE, scrollCollapse = TRUE,
+                                               buttons = c("copy", "csv", "excel", "print"),
+                                               scrollY = "700px", paging = FALSE, fixedColumns = list(leftColumns = 1))),
+                  columns = colnames(df), fontSize = '80%')
 }
 
 cat(paste0("\n\n**Date**: ", Sys.time()), "\n\n")
 
-cat("## Analysed input files\n\n")
-md_DT(data.frame(`File name` = genome_files, check.names = FALSE))
+cat("## adhesiomeR settings\n\n")
+
+ver <- attributes(params[["presence_table"]])[["search_version"]]
+cat(paste0("Search version: ", ver, "\n\n"))
+
+if(ver == "relaxed") {
+  cat(paste0("Identity percent threshold: ", 
+             attributes(params[["presence_table"]])[["identity_threshold"]],
+             "\n\nCoverage threshold: ",
+             attributes(params[["presence_table"]])[["coverage_threshold"]]))
+}
+
+cat("\n\n## Analysed input files\n\n")
+md_DT(data.frame(`File name` = params[["genome_files"]], check.names = FALSE))
 cat("\n\n")
-if(any(c("presence_table", "presence_plot") %in% elements)) {
+if(any(c("presence_table", "presence_plot") %in% params[["selected_elements"]])) {
   cat("\n\n## Analysis on gene level\n\n")
 }
 
-if("presence_table" %in% elements) {
+if("presence_table" %in% params[["selected_elements"]]) {
   cat("\n\n")
-  presence_tab <- read.csv(paste0(outdir, "/presence_table.csv"), check.names = FALSE)
-  md_DT(presence_tab)
+  md_DT(params[["presence_table"]])
 }
 
-if("presence_plot" %in% elements) {
+if("presence_plot" %in% params[["selected_elements"]]) {
   cat("\n\n")
-  pt <- read.csv(paste0(outdir, "/presence_table.csv"))
-  cat(paste0("<center>\n\n![](", outdir, "/presence_plot.png){height='", 200+5*ncol(pt),"px'}</center>"))
+  pt <- read.csv(paste0(params[["outdir"]], "/presence_table.csv"))
+  cat(paste0("<center>\n\n![](", params[["outdir"]], "/presence_plot.png){width='", 300+5*nrow(pt), "px'}\n</center>"))
 }
-
+#height='", 200+5*ncol(pt),"px; 
 ```
 
 ```{r, results='asis', echo=FALSE, out.width = 900}
 
-if(any(c("summary_table", "summary_plot") %in% elements)) {
+if(any(c("summary_table", "summary_plot") %in% params[["selected_elements"]])) {
   cat("## Analysis on system level\n\n")
 }
 
-if("summary_table" %in% elements) {
+if("summary_table" %in% params[["selected_elements"]]) {
   cat("\n\n")
-  summ_tab <- read.csv(paste0(outdir, "/summary_table.csv"), check.names = FALSE)
+  summ_tab <- read.csv(paste0(params[["outdir"]], "/summary_table.csv"), check.names = FALSE)
   md_DT(summ_tab)
 }
 
-if("summary_plot" %in% elements) {
+if("summary_plot" %in% params[["selected_elements"]]) {
   cat("\n\n")
-  st <- read.csv(paste0(outdir, "/summary_table.csv"))
-  cat(paste0("<center>\n\n![](", outdir, "/summary_plot.png){width='", 300+8*ncol(st),"px'}\n</center>"))
+  st <- read.csv(paste0(params[["outdir"]], "/summary_table.csv"))
+  cat(paste0("<center>\n\n![](", params[["outdir"]], "/summary_plot.png){width='", 300+8*ncol(st),"px'}\n</center>"))
 }
 
 ```
 
 ```{r, results='asis', echo=FALSE, out.width = 900}
-
-if("profile_table" %in% elements) {
+if("profile_table" %in% params[["selected_elements"]]) {
   cat("## Adhesin profiles\n\n")
-}
-
-if("profile_table" %in% elements) {
   cat("\n\n")
-  profile_tab <- read.csv(paste0(outdir, "/profile_table.csv"), check.names = FALSE)
-  md_DT(profile_tab)
+  profile_tab <- read.csv(paste0(params[["outdir"]], "/profile_table.csv"), check.names = FALSE)
+  DT::formatStyle(DT::datatable(profile_tab, extensions = c('FixedColumns', 'Buttons'),
+                                filter = "top", rownames = FALSE, style = "bootstrap",
+                                options = list(dom = 'Bt', scrollX = TRUE, scrollCollapse = TRUE,
+                                               buttons = c("copy", "csv", "excel", "print"),
+                                               scrollY = "700px", paging = FALSE, fixedColumns = list(leftColumns = 1),
+                                               columnDefs = list(list(
+                                                 targets = 1:3, 
+                                                 render = JS(
+                                                   "function(data, type, row, meta) {",
+                                                   "return data === null ? 'NA' : data;",
+                                                   "}"))))),
+                  columns = colnames(profile_tab), fontSize = '80%')
 }
-
+if("profile_table" %in% params[["selected_elements"]] & ver == "relaxed") {
+  warning("Profile assignment is not available for results obtained using relaxed version of the search. Skipping...")
+}
 ```
 
 ```{r, results='asis', echo=FALSE, out.width = 900}
 
-if("cluster_table" %in% elements) {
+if("cluster_table" %in% params[["selected_elements"]]) {
   cat("## Adhesin clusters\n\n")
-}
-
-if("cluster_table" %in% elements) {
   cat("\n\n")
-  cluster_tab <- read.csv(paste0(outdir, "/cluster_table.csv"), check.names = FALSE)
+  cluster_tab <- read.csv(paste0(params[["outdir"]], "/cluster_table.csv"), check.names = FALSE)
   md_DT(cluster_tab)
 }
-
+if("cluster_table" %in% params[["selected_elements"]] & ver == "relaxed") {
+  warning("Cluster assignment is not available for results obtained using relaxed version of the search. Skipping...")
+}
 ```
 
 ## About

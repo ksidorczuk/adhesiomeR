@@ -29,17 +29,24 @@ get_adhesin_clusters <- function(new_results,
                                  model_all = adhesiomeR::clustering_all, 
                                  model_fimbrial = adhesiomeR::clustering_fimbrial, 
                                  model_nonfimbrial = adhesiomeR::clustering_nonfimbrial) {
-  do.call(rbind, 
-          lapply(1:nrow(new_results), function(i) {
-            new_x <- new_results[which(colnames(new_results) != "File")][i,]
-            data.frame(File = new_results[i,][["File"]],
-                       Adhesins_cluster = c("A-G", "A-I", "A-E", "A-C", "A-A","A-D", "A-J", "A-B", "A-F", "A-H")
-                       [get_cluster(model_all, new_x[which(colnames(new_x) %in% colnames(model_all[["data"]]))])],
-                       Fimbrial_cluster = c("F-F", "F-G", "F-A", "F-D", "F-C", "F-E", "F-H", "F-B")
-                       [get_cluster(model_fimbrial, new_x[which(colnames(new_x) %in% colnames(model_fimbrial[["data"]]))])],
-                       Nonfimbrial_cluster = c("N-A", "N-D", "N-C", "N-B", "N-E")
-                       [get_cluster(model_nonfimbrial, new_x[which(colnames(new_x) %in% colnames(model_nonfimbrial[["data"]]))])])
-          })) 
+  ver <- attributes(new_results)[["search_version"]]
+  if(is.null(ver)) {
+    stop(paste0("The input type is not supported for assignment of clustering. Please make sure to use results obtained with `get_presence_table_strict`."))
+  } else if(ver == "relaxed") {
+    stop("This function is not compatible with relaxed version of the search. To use cluster assignments, please generate presence table using `get_presence_table_strict` function.")
+  } else if(ver == "strict") {
+    do.call(rbind, 
+            lapply(1:nrow(new_results), function(i) {
+              new_x <- new_results[which(colnames(new_results) != "File")][i,]
+              data.frame(File = new_results[i,][["File"]],
+                         Adhesins_cluster = c("A-G", "A-I", "A-E", "A-C", "A-A","A-D", "A-J", "A-B", "A-F", "A-H")
+                         [get_cluster(model_all, new_x[which(colnames(new_x) %in% colnames(model_all[["data"]]))])],
+                         Fimbrial_cluster = c("F-F", "F-G", "F-A", "F-D", "F-C", "F-E", "F-H", "F-B")
+                         [get_cluster(model_fimbrial, new_x[which(colnames(new_x) %in% colnames(model_fimbrial[["data"]]))])],
+                         Nonfimbrial_cluster = c("N-A", "N-D", "N-C", "N-B", "N-E")
+                         [get_cluster(model_nonfimbrial, new_x[which(colnames(new_x) %in% colnames(model_nonfimbrial[["data"]]))])])
+            }))
+  }
 }
 
 #' Assign genomes to adhesin profiles
@@ -53,9 +60,16 @@ get_adhesin_clusters <- function(new_results,
 #' to profiles for three types of clustering (all adhesins, fimbrial, nonfimbrial).
 #' @export
 get_adhesin_profiles <- function(new_results, profiles = adhesiomeR::profiles) {
+  ver <- attributes(new_results)[["search_version"]]
+  if(is.null(ver)) {
+    stop(paste0("The input type is not supported for assignment of clustering. Please make sure to use results obtained with `get_presence_table_strict`."))
+  } else if(ver == "relaxed") {
+    stop("This function is not compatible with relaxed version of the search. To use cluster assignments, please generate presence table using `get_presence_table_strict` function.")
+  } else if(ver == "strict") {
   data.frame(File = new_results[["File"]],
              Adhesins_profile = suppressMessages(left_join(new_results, profiles[["A"]])[["Adhesins_profile"]]),
              Fimbrial_profile = suppressMessages(left_join(new_results, profiles[["F"]])[["Fimbrial_profile"]]),
              Nonfimbrial_profile = suppressMessages(left_join(new_results, profiles[["N"]])[["Nonfimbrial_profile"]]))
+  }
 }
 

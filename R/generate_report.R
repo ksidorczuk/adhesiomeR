@@ -71,21 +71,28 @@ generate_report <- function(presence_table, elements = c("summary_table", "summa
   genome_files <- presence_table[["File"]]
   
   # Generate the files specified by the 'elements' argument
-  generate_report_files(presence_table, elements = c("summary_table", "summary_plot", 
-                                                     "presence_table", "presence_plot",
-                                                     "profile_table", "cluster_table"), 
-                        outdir = outdir, hide_absent_genes = hide_absent_genes, 
-                        hide_absent_systems = hide_absent_systems,
-                        presence_col = presence_col, absence_col = absence_col)
-  
+  ver <- attributes(presence_table)[["search_version"]]
+  selected_elements <- if(ver == "strict") {
+    c("summary_table", "summary_plot", "presence_table", "presence_plot", "profile_table", "cluster_table")
+  } else {
+    c("summary_table", "summary_plot", "presence_table", "presence_plot")
+  }
+    generate_report_files(presence_table, elements = selected_elements, 
+                          outdir = outdir, hide_absent_genes = hide_absent_genes, 
+                          hide_absent_systems = hide_absent_systems,
+                          presence_col = presence_col, absence_col = absence_col)
+
   # Generate the report file
   report_template <- system.file("adhesiomeR/adhesiomeR-report.Rmd", package = "adhesiomeR")
   render(report_template, output_format = "html_document", 
          output_dir = paste0(outdir), quiet = TRUE, "adhesiomeR-results.html",
-         params = list(genome_files, outdir, elements))
+         params = list(genome_files, outdir, selected_elements, presence_table))
   
+  fl <- list.files(outdir, full.names = TRUE)
+  if(!("presence_table" %in% elements)) {
+    invisible(file.remove(fl[grep("presence_table.csv", fl)]))
+  }
   if(remove_intermediate_files == TRUE) {
-    fl <- list.files(outdir, full.names = TRUE)
     invisible(file.remove(fl[!grepl("adhesiomeR-results.html", fl)]))
   }
 }

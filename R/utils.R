@@ -60,14 +60,14 @@ generate_report_files <- function(presence_table, elements = c("summary_table", 
     write.csv(summary_table, paste0(outdir, "/summary_table.csv"), row.names = FALSE)
   }
   
-  if("presence_table" %in% elements) {
+  #if("presence_table" %in% elements) {
     if(hide_absent_genes == TRUE) {
       pres_table <- presence_table[, c(TRUE, colSums(presence_table[, 2:ncol(presence_table)]) > 0)]
     } else {
       pres_table <- presence_table
     }
     write.csv(pres_table, paste0(outdir, "/presence_table.csv"), row.names = FALSE)
-  }
+ # }
   
   if("summary_plot" %in% elements) {
     summary_plot <- get_summary_plot(presence_table, hide_absent = hide_absent_systems,
@@ -86,7 +86,7 @@ generate_report_files <- function(presence_table, elements = c("summary_table", 
     presence_plot <- get_presence_plot(plot_dat, presence_col = presence_col, absence_col = absence_col) +
       theme(legend.position = "right")
     ggsave(paste0(outdir, "/presence_plot.png"), presence_plot,
-           width = 50+5*nrow(plot_dat), height = 80 + 3*ncol(plot_dat), units = "mm", limitsize = FALSE)
+           width = 100+5*nrow(plot_dat), height = 80 + 3*ncol(plot_dat), units = "mm", limitsize = FALSE)
   }
   
   if("profile_table" %in% elements) {
