@@ -209,6 +209,7 @@ cluster_data <- function(df, data_to_cluster, var_name) {
 #' @importFrom dplyr filter ungroup
 #' @importFrom tidyr pivot_longer
 #' @noRd
+#' @keywords internal
 get_presence_plot_data <- function(presence_table, systems = unique(adhesins_df_grouped[["System"]])) {
   
   selected_genes <- unique(filter(adhesins_df_grouped, System %in% systems)[["Gene"]])
@@ -221,7 +222,10 @@ get_presence_plot_data <- function(presence_table, systems = unique(adhesins_df_
     plot_dat <- cluster_data(plot_dat, presence_table, "Gene")
   }
   
-  plot_dat[["Presence"]] <- factor(ifelse(plot_dat[["Presence"]] == 1, "yes", "no"), levels = c("yes", "no"))
+  if(all(plot_dat[["Presence"]] <= 1)) {
+    plot_dat[["Presence"]] <- factor(ifelse(plot_dat[["Presence"]] == 1, "yes", "no"), levels = c("yes", "no"))
+  } 
+  
   ungroup(plot_dat)
 }
 
@@ -246,11 +250,20 @@ get_presence_plot <- function(presence_table, systems = unique(adhesins_df_group
   
   plot_dat <- get_presence_plot_data(presence_table, systems)
   
-  ggplot(plot_dat, aes(x = File, y = Gene, fill = Presence)) +
-    geom_tile() +
-    scale_fill_manual("Presence", values = c("yes" = presence_col, "no" = absence_col), drop = FALSE) +
-    scale_x_discrete(position = "top") +
-    plot_theme() +
-    theme(legend.direction = "vertical")
+  if(all(is.factor(plot_dat[["Presence"]]))) {
+    ggplot(plot_dat, aes(x = File, y = Gene, fill = Presence)) +
+      geom_tile() +
+      scale_fill_manual("Presence", values = c("yes" = presence_col, "no" = absence_col), drop = FALSE) +
+      scale_x_discrete(position = "top") +
+      plot_theme() +
+      theme(legend.direction = "vertical")
+  } else {
+    ggplot(plot_dat, aes(x = File, y = Gene, fill = Presence)) +
+      geom_tile() +
+      scale_fill_gradient("Copies", low = absence_col, high = presence_col) +
+      scale_x_discrete(position = "top") +
+      plot_theme() +
+      theme(legend.direction = "horizontal")
+  }
+  
 }
-

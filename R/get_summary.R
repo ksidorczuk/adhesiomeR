@@ -34,7 +34,7 @@ get_summary_table <- function(presence_table, hide_absent = FALSE) {
                                 gene_percentage == 0 ~ "Absent")
   )
   
-  pivoted_res <- left_join(pivot_wider(res, File, names_from = "System", values_from = "gene_percentage", values_fill = "Absent"),
+  pivoted_res <- left_join(pivot_wider(res, id_cols = File, names_from = "System", values_from = "gene_percentage", values_fill = "Absent"),
                            presence_table[, c("File", "eae")], by = "File")
   
   updated_res <- mutate(

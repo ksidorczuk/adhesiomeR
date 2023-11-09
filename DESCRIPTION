@@ -21,7 +21,6 @@ Imports:
     future.apply,
     ggplot2,
     tidyr,
-    ggrepel,
     rmarkdown,
     shiny,
     progressr,
