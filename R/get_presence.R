@@ -133,6 +133,8 @@ get_presence_table <- function(blast_res, all_blast_res, add_missing = TRUE, cou
 #' @importFrom dplyr left_join 
 #' @export
 get_presence_table_relaxed <- function(blast_res, add_missing = TRUE, count_copies = FALSE, identity = 75, coverage = 75, n_threads = 1) {
+  if(identity < 75 | identity > 100 | !is.numeric(identity)) stop("Identity percent threshold has to be numeric value in range 75-100.")
+  if(coverage < 75 | coverage > 100 | !is.numeric(coverage)) stop("Coverage threshold has to be numeric value in range 75-100.")
   check_cores(n_threads)
   
   adhesins_lengths <- adhesiomeR::adhesins_lengths

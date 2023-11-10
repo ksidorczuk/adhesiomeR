@@ -76,7 +76,7 @@ library(R.utils)
 library(dplyr)
 
 # get genome accessions from data file
-ecor_data <- read.csv("./inst/ecor_data.csv", check.names = FALSE)
+ecor_data <- read.csv(system.file("ecor_data.csv", package = "adhesiomeR"), check.names = FALSE)
 ecor_accessions <- ecor_data[["GenBank accession no."]]
 
 # create directory for storing downloaded genomes
