@@ -34,5 +34,6 @@ gc_to_sample <- function(blast_res, abundance_matrix, threshold = NULL) {
       }
     })
   )
+  blast_res <- filter(blast_res, Query %in% long_df[["Gene"]])
   left_join(select(blast_res, -File), long_df, by = c("Query" = "Gene"), relationship = "many-to-many")
 }
