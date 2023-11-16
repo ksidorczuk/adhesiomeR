@@ -21,12 +21,10 @@ get_summary_table <- function(presence_table, hide_absent = FALSE) {
     summarise(
       group_by(
         left_join(
-          filter(
-            pivot_longer(add_missing_genes(presence_table, type = "grouped"), 
-                         2:ncol(add_missing_genes(presence_table, type = "grouped")), 
-                         names_to = "Gene", values_to = "Presence"),
-            Gene != "faeA"),
-          filter(adhesins_df_grouped, Gene != "faeA"), by = "Gene"),
+          pivot_longer(add_missing_genes(presence_table, type = "grouped"), 
+                       2:ncol(add_missing_genes(presence_table, type = "grouped")), 
+                       names_to = "Gene", values_to = "Presence"),
+          adhesins_df_grouped, by = "Gene"),
         File, System),
       gene_percentage = round(sum(Presence)*100/n(), 2)),
     gene_percentage = case_when(gene_percentage == 100 ~ "Present",
@@ -94,7 +92,7 @@ get_summary_table <- function(presence_table, hide_absent = FALSE) {
   
   if(hide_absent == TRUE) {
     x <- colSums(updated_res == "Absent")
-    updated_res <- updated_res[, which(x != nrow(updated_res))]
+    updated_res <- updated_res[, c(1, which(x != nrow(updated_res)))]
   }
   updated_res
 }
