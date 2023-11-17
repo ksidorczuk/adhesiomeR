@@ -4,7 +4,12 @@
 \alias{get_blast_res}
 \title{Get BLAST results for many files}
 \usage{
-get_blast_res(input_file_list, n_threads = 1, blast_dir = Sys.which("blastn"))
+get_blast_res(
+  input_file_list,
+  n_threads = 1,
+  tmp_dir = "./",
+  blast_dir = Sys.which("blastn")
+)
 }
 \arguments{
 \item{input_file_list}{A \code{list} of file names that will be used
@@ -13,6 +18,10 @@ in a FASTA format.}
 
 \item{n_threads}{number of threads used for running BLAST. Default is one. The 
 maximum number of threads is determined by \code{\link[parallel]{detectCores}}.}
+
+\item{tmp_dir}{path to directory where temporary files will be stored while
+running BLAST. By default current working directory.  It should be a directory
+in which you have write access.}
 
 \item{blast_dir}{A path to the directory with BLAST executables. By default,
 it tries to find the proper executable by running system command \code{which}
