@@ -4,6 +4,7 @@
 #' a shiny application. The application may be used to perform adhesiomeR
 #' analysis on up to 100 genomes.
 #' @return No return value, called for its side effects.
+#' @export
 #' @importFrom shiny runApp
 adhesiomeR_gui <- function() {
   runApp(system.file("adhesiomeR", package = "adhesiomeR"))
