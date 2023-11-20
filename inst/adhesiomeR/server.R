@@ -16,10 +16,8 @@ library(parallel)
 pkgload::load_all()
 source("shiny-utils.R")
 
-#data(adhesins_df)
 
 
-#source("shiny-utils.R")
 
 options(shiny.maxRequestSize=10*1024^2)
 

@@ -137,6 +137,19 @@ shinyUI(tagList(
              #      HTML(".dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter, .dataTables_wrapper .dataTables_info, .dataTables_wrapper .dataTables_processing,.dataTables_wrapper .dataTables_paginate .paginate_button, .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
              #     color: #0000ff !important;
              # }"),
-             HTML(".dataTables_wrapper .dataTables_paginate .paginate_button {color: #4A7443}"))
+             HTML(".dataTables_wrapper .dataTables_paginate .paginate_button {color: #4A7443}")),
+  tags$style(type='text/css',
+             HTML(".footer {position:absolute;
+                  bottom:0;
+                  width:100%;
+                  height:30px;
+                    color: white;
+                  padding: 5px;
+                  background-color: #2c3e50;
+                  z-index: 1000;}")),
+  div(
+    class = "footer",
+    includeHTML("footer.html")
+  )
 )
 )
