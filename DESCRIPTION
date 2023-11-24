@@ -22,7 +22,6 @@ Imports:
     ggplot2,
     tidyr,
     rmarkdown,
-    shiny,
     progressr,
     parallel
 Suggests:
