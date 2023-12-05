@@ -8,11 +8,12 @@ Authors@R: c(person("Katarzyna", "Sidorczuk",
            email = "sidorczuk.katarzyna17@gmail.com",
            role = c("cre", "aut"),
            comment = c(ORCID = "0000-0001-6576-9054")))
-Description: ...
+Description: AdhesiomeR contains the most comprehensive, manually curated set of E. coli adhesins and offers a powerful analysis framework, called adhesiomeR, that enables qualitative inspection of the adhesin repertoires. Together, these resources offer a convenient analysis of adhesin genes in E. coli genomes. 
 License: GPL-3
 URL: https://github.com/ksidorczuk/adhesiomeR
 BugReports: https://github.com/ksidorczuk/adhesiomeR/issues
 Encoding: UTF-8
+Copyright: Quadram Institute Bioscience, Earlham Institute
 Depends:
     R (>= 3.5.0)
 Imports:
