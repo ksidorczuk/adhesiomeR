@@ -133,22 +133,29 @@ get_presence_table <- function(blast_res, all_blast_res, add_missing = TRUE, cou
 #' @importFrom dplyr left_join 
 #' @export
 get_presence_table_relaxed <- function(blast_res, add_missing = TRUE, count_copies = FALSE, identity = 75, coverage = 75, n_threads = 1) {
+  
   if(identity < 75 | identity > 100 | !is.numeric(identity)) stop("Identity percent threshold has to be numeric value in range 75-100.")
   if(coverage < 75 | coverage > 100 | !is.numeric(coverage)) stop("Coverage threshold has to be numeric value in range 75-100.")
   check_cores(n_threads)
   
-  adhesins_lengths <- adhesiomeR::adhesins_lengths
   
-  blast_res_lens <- left_join(blast_res, adhesins_lengths, by = c("Subject" = "Gene"))
-  blast_res_lens[["Subject coverage"]] <- blast_res_lens[["Alignment length"]]/blast_res_lens[["Length"]]*100
-  all_blast_res <- filter(blast_res_lens, `% identity` > identity & `Subject coverage` > coverage)
-  
-  final_results <- get_presence_table(blast_res, all_blast_res, add_missing = add_missing, count_copies = count_copies, n_threads = n_threads)
-  
-  attr(final_results, "search_version") <- "relaxed" 
-  attr(final_results, "identity_threshold") <- identity
-  attr(final_results, "coverage_threshold") <- coverage
-  final_results
+  if(all(is.na(blast_res[["Query"]]))) {
+    add_missing_genes(data.frame(fimH = 0), type = "grouped")
+  } else {
+    
+    adhesins_lengths <- adhesiomeR::adhesins_lengths
+    
+    blast_res_lens <- left_join(blast_res, adhesins_lengths, by = c("Subject" = "Gene"))
+    blast_res_lens[["Subject coverage"]] <- blast_res_lens[["Alignment length"]]/blast_res_lens[["Length"]]*100
+    all_blast_res <- filter(blast_res_lens, `% identity` > identity & `Subject coverage` > coverage)
+    
+    final_results <- get_presence_table(blast_res, all_blast_res, add_missing = add_missing, count_copies = count_copies, n_threads = n_threads)
+    
+    attr(final_results, "search_version") <- "relaxed" 
+    attr(final_results, "identity_threshold") <- identity
+    attr(final_results, "coverage_threshold") <- coverage
+    final_results
+  }
 } 
 
 
@@ -179,13 +186,16 @@ get_presence_table_relaxed <- function(blast_res, add_missing = TRUE, count_copi
 get_presence_table_strict <- function(blast_res, add_missing = TRUE, count_copies = FALSE, n_threads = 1) {
   check_cores(n_threads)
   
-  bitscore_thresholds <- adhesiomeR::bitscore_thresholds
-  
-  blast_res_thr <- left_join(blast_res, bitscore_thresholds, by = c("Subject" = "Gene"))
-  all_blast_res <- filter(blast_res_thr, `Bit score` >= Threshold)
-  
-  get_presence_table(blast_res, all_blast_res, add_missing = add_missing, count_copies = count_copies, n_threads = n_threads)
-  
+  if(all(is.na(blast_res[["Query"]]))) {
+    add_missing_genes(data.frame(fimH = 0), type = "grouped")
+  } else {
+    bitscore_thresholds <- adhesiomeR::bitscore_thresholds
+    
+    blast_res_thr <- left_join(blast_res, bitscore_thresholds, by = c("Subject" = "Gene"))
+    all_blast_res <- filter(blast_res_thr, `Bit score` >= Threshold)
+    
+    get_presence_table(blast_res, all_blast_res, add_missing = add_missing, count_copies = count_copies, n_threads = n_threads)
+  }
 }
 
 

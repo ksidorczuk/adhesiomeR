@@ -65,8 +65,11 @@ get_blast_res <- function(input_file_list, n_threads = 1, tmp_dir = "./", blast_
     }) 
   }
   
-  mutate(res, Subject = sapply(Subject, function(i) strsplit(i, "~~~")[[1]][2]))
-  
+  if(any(!is.na(res[["Subject"]]))) {
+    mutate(res, Subject = sapply(Subject, function(i) strsplit(i, "~~~")[[1]][2]))
+  } else {
+    res
+  }
 }
 
 
