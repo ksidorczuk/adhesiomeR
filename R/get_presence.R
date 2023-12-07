@@ -140,7 +140,7 @@ get_presence_table_relaxed <- function(blast_res, add_missing = TRUE, count_copi
   
   
   if(all(is.na(blast_res[["Query"]]))) {
-    add_missing_genes(data.frame(fimH = 0), type = "grouped")
+    add_missing_genes(data.frame(File = blast_res[["File"]]), type = "grouped")
   } else {
     
     adhesins_lengths <- adhesiomeR::adhesins_lengths
@@ -187,7 +187,7 @@ get_presence_table_strict <- function(blast_res, add_missing = TRUE, count_copie
   check_cores(n_threads)
   
   if(all(is.na(blast_res[["Query"]]))) {
-    add_missing_genes(data.frame(fimH = 0), type = "grouped")
+    add_missing_genes(data.frame(File = blast_res[["File"]]), type = "grouped")
   } else {
     bitscore_thresholds <- adhesiomeR::bitscore_thresholds
     
