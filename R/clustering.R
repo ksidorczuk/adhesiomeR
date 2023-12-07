@@ -7,10 +7,14 @@
 #' @importFrom stats dist
 #' @noRd
 get_cluster <- function(model, new_data_single) {
-  which.min(
-    sapply(1:length(model[["i.med"]]), function(i) dist(rbind(data.frame(t(model[["medoids"]][i,]), check.names = FALSE),
-                                                              new_data_single), method = "manhattan"))
-  )
+  if(all(is.na(new_data_single))) {
+    NA
+  } else {
+    which.min(
+      sapply(1:length(model[["i.med"]]), function(i) dist(rbind(data.frame(t(model[["medoids"]][i,]), check.names = FALSE),
+                                                                new_data_single), method = "manhattan"))
+    )
+  }
 }
 
 #' Assign genomes to adhesin profile clusters
