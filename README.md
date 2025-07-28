@@ -2,6 +2,10 @@
 
 adhesiomeR is a tool for analysis of adhesiome in *Escherichia coli* genomes.
 
+## Web server
+
+AdhesiomeR is available as a web server [here](https://biogenies.info/adhesiomeR/). 
+
 ## Installation 
 
 ### Installing BLAST+ 
